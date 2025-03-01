@@ -26,7 +26,6 @@ jobs:
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '22'
-    - run: mkdir /home/runner/work/VIRTHA-Events/VIRTHA-Events/compiled
     - run: mvn package -f pom.xml
 
     - name: Obtener nombre del JAR
