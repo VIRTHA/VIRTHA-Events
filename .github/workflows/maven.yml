@@ -35,16 +35,13 @@ jobs:
           echo "JAR_NAME=${JAR_NAME}" >> $GITHUB_ENV
           echo "::set-output name=jar_name::${JAR_NAME}"
     
-    - name: Generate a Build Artifact
+    - name: Generate plugin artifact
       uses: actions/upload-artifact@v4.6.0
       with:
         name: ${{ env.JAR_NAME }}  # Usa el nombre del JAR
         path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events/target/${{ env.JAR_NAME }}  # Ruta del archivo
           
-  generate-jar:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download a Build Artifact
+    - name: Save plugin artifact
       uses: actions/download-artifact@v4.1.9
       with:
         path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/compiled
