@@ -26,13 +26,14 @@ jobs:
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '22'
-    - run: mkdir /home/runner/work/VIRTHA-Events/compiled
+    - run: mkdir $GITHUB_WORKSPACE/compiled
     - run: mvn package -f pom.xml
     
     - name: Generate a Build Artifact
       uses: actions/upload-artifact@v4.6.0
       with:
-        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events/target/*.jar
+        name: VIRTHA-Events
+        path: /target/*.jar #/home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events
     
   generate-jar:
     runs-on: ubuntu-latest
@@ -40,4 +41,4 @@ jobs:
     - name: Download a Build Artifact
       uses: actions/download-artifact@v4.1.8
       with:
-        path: /home/runner/work/VIRTHA-Events/compiled
+        path: $GITHUB_WORKSPACE/compiled
