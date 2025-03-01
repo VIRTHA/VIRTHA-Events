@@ -28,17 +28,24 @@ jobs:
         java-version: '22'
     - run: mkdir /home/runner/work/VIRTHA-Events/VIRTHA-Events/compiled
     - run: mvn package -f pom.xml
+
+    - name: Obtener nombre del JAR
+      id: get_jar_name
+      run: |
+          JAR_NAME=$(ls target/*.jar | xargs -n1 basename)
+          echo "JAR_NAME=${JAR_NAME}" >> $GITHUB_ENV
+          echo "::set-output name=jar_name::${JAR_NAME}"
     
     - name: Generate a Build Artifact
       uses: actions/upload-artifact@v4.6.0
       with:
-        name: VIRTHA-Events
-        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events/target/*.jar #/home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events
-    
+        name: ${{ env.JAR_NAME }}  # Usa el nombre del JAR
+        path: target/${{ env.JAR_NAME }}  # Ruta del archivo
+          
   generate-jar:
     runs-on: ubuntu-latest
     steps:
     - name: Download a Build Artifact
       uses: actions/download-artifact@v4.1.9
       with:
-        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events/target/*.jar
+        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/compiled
