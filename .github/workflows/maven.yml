@@ -26,13 +26,13 @@ jobs:
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '22'
-    - run: mkdir /home/runner/work/BellionPoints/VIRTHA-Events/compiled 
+    - run: mkdir /home/runner/work/VIRTHA-Events/compiled 
     - run: mvn package -f pom.xml
     
     - name: Generate a Build Artifact
       uses: actions/upload-artifact@v4.6.0
       with:
-        path: /home/runner/work/BellionPoints/VIRTHA-Events/compiled
+        path: /home/runner/work/VIRTHA-Events/compiled
     
   #generate-jar:
   #  runs-on: ubuntu-latest
