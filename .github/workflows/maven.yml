@@ -39,7 +39,7 @@ jobs:
       uses: actions/upload-artifact@v4.6.0
       with:
         name: ${{ env.JAR_NAME }}  # Usa el nombre del JAR
-        path: ./target/${{ env.JAR_NAME }}  # Ruta del archivo
+        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events/target/${{ env.JAR_NAME }}  # Ruta del archivo
           
   generate-jar:
     runs-on: ubuntu-latest
