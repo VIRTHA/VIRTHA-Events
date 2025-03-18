@@ -13,7 +13,11 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import com.darkbladedev.utils.ColorText;
 
-public class HealthSteal implements Listener{
+public class HealthSteal implements Listener {
+
+    public HealthSteal() {
+
+    }
 
 
     public void onPlayerKill(PlayerDeathEvent event) {
