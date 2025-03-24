@@ -15,6 +15,7 @@ public class VirthaEventsMain extends JavaPlugin{
     public void onEnable() {
 
         registerCommands();
+        registerEvents();
 
         Bukkit.getConsoleSender().sendMessage(
             ColorText.Colorize("&aThe plugin has been activated! ✅")

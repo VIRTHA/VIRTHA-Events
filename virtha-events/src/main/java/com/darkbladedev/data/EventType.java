@@ -1,5 +1,7 @@
 package com.darkbladedev.data;
 
+import java.util.List;
+
 import org.bukkit.command.CommandSender;
 
 /**
@@ -7,6 +9,10 @@ import org.bukkit.command.CommandSender;
  * Each event type corresponds to a mechanic in the mechanics package.
  */
 public enum EventType {
+    SIZE_RANDOMIZER("size_randomizer", "Randomizes the size of players"),
+    LUNAR_GRAVITY("lunar_gravity", "players experience lunar gravity"),
+    TOXIC_FOG("toxic_fog", "Creates a toxic fog that damages players"),
+    PARANOIA_EFFECT("paranoia_effect", "Players experience a paranoia effect"),
     MOB_RAIN("mob_rain", "Mobs rain from the sky periodically");
 
     private final String eventName;
@@ -56,5 +62,17 @@ public enum EventType {
         for (EventType type : values()) {
             sender.sendMessage("- " + type.getEventName() + ": " + type.getDescription());
         }
+    }
+
+    /**
+     * Finds an event type by its command name.
+     * @return All EventType names as List
+     */
+    public static List<String> getEventNames() {
+        List<String> eventNames = List.of();
+        for (EventType type : values()) {
+            eventNames.add(type.getEventName());
+        }
+        return eventNames;
     }
 }

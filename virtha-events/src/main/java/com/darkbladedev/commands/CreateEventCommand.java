@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.darkbladedev.data.EventType;
 import com.darkbladedev.mechanics.MobRain;
+import com.darkbladedev.mechanics.SizeRandomizer;
 import com.darkbladedev.utils.ColorText;
 
 public class CreateEventCommand implements CommandExecutor {
@@ -19,30 +20,33 @@ public class CreateEventCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(ColorText.Colorize("&cUsage: /virtha_events run_event <event-type> <duration>"));
-            EventType.sendEventList(sender);
+        if (args.length < 3) {
+            sender.sendMessage(ColorText.Colorize("&cUsage: /virtha_events run_event <event-type> <arguments>"));
             return false;
         }
         
-        String eventTypeName = args[0];
-        String duration = args[1];
+        String eventTypeName = args[1];
         
         EventType eventType = EventType.getByName(eventTypeName);
         
         if (eventType == null) {
             sender.sendMessage(ColorText.Colorize("&cUnknown event type: " + eventTypeName));
-            EventType.sendEventList(sender);
+            //EventType.sendEventList(sender);
             return false;
         }
         
 
-        sender.sendMessage(ColorText.Colorize("&aRunning event: " + eventType.name() + " for duration: " + duration));
+        sender.sendMessage(ColorText.Colorize("&aRunning event: " + eventType.name()));
         
         switch (eventType.getEventName()) {
             case "mob_rain":
-                MobRain event = new MobRain(plugin);
-                event.start();
+                MobRain mobRain = new MobRain(plugin, Integer.parseInt(args[2]));
+                mobRain.start();
+            case "size_randomizer":
+                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, Float.parseFloat(args[2]), Float.parseFloat(args[3]), Float.parseFloat(args[4]));
+                sizeRandomizer.start();
+            case "lunar_gravity":
+                
             default:
                 break;
         }

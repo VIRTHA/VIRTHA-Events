@@ -22,14 +22,6 @@ public class MobRain {
     private final List<EntityType> possibleEntities;
     
     /**
-     * Creates a new MobRain event
-     * @param plugin The plugin instance
-     */
-    public MobRain(Plugin plugin) {
-        this(plugin, 20); // Default to 20 entities
-    }
-    
-    /**
      * Creates a new MobRain event with custom entity count
      * @param plugin The plugin instance
      * @param entityCount Number of entities to spawn
@@ -140,6 +132,8 @@ public class MobRain {
         entities.add(EntityType.CREEPER);
         entities.add(EntityType.WITCH);
         entities.add(EntityType.PILLAGER);
+        entities.add(EntityType.ENDERMAN);
+        entities.add(EntityType.HOGLIN);
         
         // Add passive mobs
         entities.add(EntityType.SHEEP);
