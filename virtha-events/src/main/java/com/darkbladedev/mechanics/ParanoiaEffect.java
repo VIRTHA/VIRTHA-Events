@@ -40,10 +40,10 @@ public class ParanoiaEffect {
             public void run() {
                 for (Player player : players) {
                     player.setGlowing(true);
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, (int) (duration), 0));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, (int) (duration), 0));
                     for (int i = 0; i < interval; i++) {
                         List<Sound> sounds = generateSoundList();
-                        player.playSound(player, sounds.get(random.nextInt(sounds.size())), 1, 1);
+                        player.playSound(player.getLocation(), sounds.get(random.nextInt(sounds.size())), 1, 1);
                     }
                 }
             }
@@ -74,12 +74,14 @@ public class ParanoiaEffect {
         sounds.add(Sound.ENTITY_SPIDER_AMBIENT);
         sounds.add(Sound.ENTITY_ENDERMAN_TELEPORT);
         sounds.add(Sound.ENTITY_WITCH_AMBIENT);
-        sounds.add(Sound.ENTITY_WARDEN_NEARBY_CLOSE);
         sounds.add(Sound.ENTITY_PHANTOM_AMBIENT);
         sounds.add(Sound.ENTITY_WOLF_GROWL);
-        sounds.add(Sound.ENTITY_CREAKING_ACTIVATE);
         sounds.add(Sound.ENTITY_SILVERFISH_AMBIENT);
         sounds.add(Sound.ENTITY_ENDER_DRAGON_GROWL);
+        
+        // 1.21.4 sounds
+        //sounds.add(Sound.ENTITY_WARDEN_NEARBY_CLOSE);
+        //sounds.add(Sound.ENTITY_CREAKING_ACTIVATE);
         
         return sounds;
     }

@@ -7,7 +7,6 @@ import org.bukkit.plugin.Plugin;
 
 import com.darkbladedev.data.EventType;
 import com.darkbladedev.mechanics.MobRain;
-import com.darkbladedev.mechanics.SizeRandomizer;
 import com.darkbladedev.utils.ColorText;
 
 public class CreateEventCommand implements CommandExecutor {
@@ -42,9 +41,6 @@ public class CreateEventCommand implements CommandExecutor {
             case "mob_rain":
                 MobRain mobRain = new MobRain(plugin, Integer.parseInt(args[2]));
                 mobRain.start();
-            case "size_randomizer":
-                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, Float.parseFloat(args[2]), Float.parseFloat(args[3]), Float.parseFloat(args[4]));
-                sizeRandomizer.start();
             case "lunar_gravity":
                 
             default:

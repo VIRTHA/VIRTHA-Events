@@ -13,6 +13,7 @@ public enum EventType {
     LUNAR_GRAVITY("lunar_gravity", "players experience lunar gravity"),
     TOXIC_FOG("toxic_fog", "Creates a toxic fog that damages players"),
     PARANOIA_EFFECT("paranoia_effect", "Players experience a paranoia effect"),
+    ACID_WEEK("acid_week", "The atmosphere and water are contaminated with acid"),
     MOB_RAIN("mob_rain", "Mobs rain from the sky periodically");
 
     private final String eventName;

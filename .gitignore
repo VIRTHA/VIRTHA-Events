@@ -28,3 +28,4 @@ replay_pid*
 .vscode
 virtha-events\target
 virtha-events/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+virtha-events/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst

@@ -1,6 +1,8 @@
 d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\commands\CreateEventCommand.java
 d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\commands\VirthaEventsMainCommand.java
 d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\data\EventType.java
+d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\enchants\AcidResistance.java
+d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\AcidWeek.java
 d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\HealthSteal.java
 d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\LunarGravity.java
 d:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\MobRain.java
