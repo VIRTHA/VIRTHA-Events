@@ -1,5 +1,6 @@
 package com.darkbladedev.commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -30,8 +31,10 @@ public class EnchantCommand implements CommandExecutor{
         if (enchantment.equalsIgnoreCase("AcidResistance")) {
             try {
                 item.addEnchantment(AcidResistance, Integer.parseInt(level));
+                sender.sendMessage(ColorText.Colorize("&aEnchantment applied!"));
             } catch (Exception e) {
-                
+                Bukkit.getLogger().severe("Error applying enchantment: " + e.getMessage());
+                sender.sendMessage(ColorText.Colorize("&cError applying enchantment!"));
             }
         }
 

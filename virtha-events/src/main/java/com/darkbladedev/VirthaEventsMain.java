@@ -1,10 +1,6 @@
 package com.darkbladedev;
 
-import java.lang.reflect.Field;
-
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,11 +21,9 @@ public class VirthaEventsMain extends JavaPlugin{
 
         plugin = this;
 
-        acidResistance = new AcidResistance(new NamespacedKey(this, "acid_resistance"));
 
         registerCommands();
         registerEvents();
-        registerEnchantment(acidResistance);
 
         Bukkit.getConsoleSender().sendMessage(
             ColorText.Colorize("&aThe plugin has been activated! ✅")
@@ -69,6 +63,7 @@ public class VirthaEventsMain extends JavaPlugin{
         }
     }
 
+    /*
     public static void registerEnchantment(Enchantment enchantment) {
         boolean registered = true;
         try {
@@ -85,4 +80,7 @@ public class VirthaEventsMain extends JavaPlugin{
             // It's been registered!
         }
     }
+    */
+
+
 }

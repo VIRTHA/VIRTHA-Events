@@ -54,8 +54,6 @@ public class AcidWeek implements Listener {
         // Iniciar la tarea de control del clima
         startWeatherControlTask();
         
-        // Registrar eventos
-        Bukkit.getPluginManager().registerEvents(this, plugin);
         
         // Programar el fin del evento
         new BukkitRunnable() {

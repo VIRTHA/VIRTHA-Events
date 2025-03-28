@@ -30,7 +30,7 @@ public class VirthaEventsMainCommand implements CommandExecutor{
             //case "list_events":
             //    return new ListEventsCommand(null).onCommand(sender, command, label, args);
             default:
-                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents < run_event | list_events >"));
+                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents < run_event | enchant >"));
                 return false;
         
         }

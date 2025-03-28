@@ -10,7 +10,6 @@ public class AcidResistance extends Enchantment {
     private final NamespacedKey key;
 
     public AcidResistance(NamespacedKey key) {
-        super(key);
         this.key = key;
     }
 
@@ -61,5 +60,25 @@ public class AcidResistance extends Enchantment {
     @Override
     public NamespacedKey getKey() {
         return key;
+    }
+
+    @Override
+    public String getTranslationKey() {
+        return "enchantment.acid_resistance";
+        }
+
+    @Override
+    public NamespacedKey getKeyOrNull() {
+        return key;
+    }
+
+    @Override
+    public NamespacedKey getKeyOrThrow() {
+        return key;
+    }
+
+    @Override
+    public boolean isRegistered() {
+        return true;
     }
 }

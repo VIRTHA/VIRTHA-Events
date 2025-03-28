@@ -6,7 +6,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import com.darkbladedev.data.EventType;
+import com.darkbladedev.mechanics.AcidWeek;
 import com.darkbladedev.mechanics.MobRain;
+import com.darkbladedev.mechanics.SizeRandomizer;
+import com.darkbladedev.mechanics.ToxicFog;
 import com.darkbladedev.utils.ColorText;
 
 public class CreateEventCommand implements CommandExecutor {
@@ -41,8 +44,15 @@ public class CreateEventCommand implements CommandExecutor {
             case "mob_rain":
                 MobRain mobRain = new MobRain(plugin, Integer.parseInt(args[2]));
                 mobRain.start();
-            case "lunar_gravity":
-                
+            case "size_randomizer":
+                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, Float.parseFloat(args[2]), Float.parseFloat(args[3]), Float.parseFloat(args[4]));
+                sizeRandomizer.start();
+            case "acid_week":
+                AcidWeek acidWeek = new AcidWeek(plugin, Long.parseLong(args[2]));
+                acidWeek.start();
+            case "toxic_fog":
+                ToxicFog toxicFog = new ToxicFog(plugin, Long.parseLong(args[2]));
+                toxicFog.start();
             default:
                 break;
         }

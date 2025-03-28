@@ -17,6 +17,7 @@ public class CommandTabcompleter implements TabCompleter {
         List<String> completions = new ArrayList<>();
         if (command.getName().equalsIgnoreCase("virtha_events")) {
             if (args.length == 1) {
+                // Primer argumento: comandos principales
                 completions.addAll(
                     Arrays.asList(
                         "run_event"
@@ -24,14 +25,16 @@ public class CommandTabcompleter implements TabCompleter {
                 );
             } else if (args[0].equalsIgnoreCase("run_event")) {
                 if (args.length == 2) {
-                    // Instead of using EventType.getEventNames() which returns an immutable collection
-                    // Create a new ArrayList and add each event name individually
+                    // Segundo argumento: tipos de eventos
                     for (EventType type : EventType.values()) {
                         completions.add(type.getEventName());
                     }
-                } else if (args.length > 3) {
-                    // Add the arguments for each event type
-                    switch (args[1]) {
+                } else if (args.length == 3) {
+                    // Tercer argumento: duración para todos los eventos
+                    completions.add("duration");
+                } else if (args.length >= 4) {
+                    // Argumentos adicionales específicos para cada tipo de evento
+                    switch (args[1].toLowerCase()) {
                         case "mob_rain":
                             if (args.length == 4) {
                                 completions.add("entity-count");
@@ -42,7 +45,15 @@ public class CommandTabcompleter implements TabCompleter {
                                 completions.add("min_size");
                             } else if (args.length == 5) {
                                 completions.add("max_size");
-                            } else if (args.length == 6) {
+                            }
+                            break;
+                        case "acid_week":
+                            if (args.length == 4) {
+                                completions.add("duration");
+                            }
+                            break;
+                        case "paranoia_effect":
+                            if (args.length == 4) {
                                 completions.add("duration");
                             }
                             break;
@@ -55,7 +66,6 @@ public class CommandTabcompleter implements TabCompleter {
                             if (args.length == 4) {
                                 completions.add("duration");
                             }
-                        default:
                             break;
                     }
                 }

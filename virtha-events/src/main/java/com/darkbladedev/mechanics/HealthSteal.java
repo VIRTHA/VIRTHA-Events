@@ -44,12 +44,12 @@ public class HealthSteal implements Listener {
 
         // Ajustar salud (1 corazón = 2.0 puntos)
         double healthToSteal = 2.0;
-        double newMaxHealth = killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() + healthToSteal;
+        double newMaxHealth = killer.getAttribute(Attribute.MAX_HEALTH).getValue() + healthToSteal;
 
         // Limitar salud máxima si es necesario
         if (newMaxHealth > 40.0) newMaxHealth = 40.0;
 
-        killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newMaxHealth);
+        killer.getAttribute(Attribute.MAX_HEALTH).setBaseValue(newMaxHealth);
         killer.setHealth(Math.min(killer.getHealth() + healthToSteal, newMaxHealth));
 
         // Mensaje al jugador

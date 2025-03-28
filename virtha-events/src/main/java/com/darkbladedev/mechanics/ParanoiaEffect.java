@@ -40,10 +40,10 @@ public class ParanoiaEffect {
             public void run() {
                 for (Player player : players) {
                     player.setGlowing(true);
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, (int) (duration), 0));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, (int) (duration), 0));
                     for (int i = 0; i < interval; i++) {
                         List<Sound> sounds = generateSoundList();
-                        player.playSound(player.getLocation(), sounds.get(random.nextInt(sounds.size())), 1, 1);
+                        player.playSound(player, sounds.get(random.nextInt(sounds.size())), 1, 1);
                     }
                 }
             }

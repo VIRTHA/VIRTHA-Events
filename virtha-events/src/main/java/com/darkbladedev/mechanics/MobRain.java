@@ -134,6 +134,8 @@ public class MobRain {
         entities.add(EntityType.PILLAGER);
         entities.add(EntityType.ENDERMAN);
         entities.add(EntityType.HOGLIN);
+        entities.add(EntityType.RAVAGER);
+        entities.add(EntityType.WARDEN);
         
         // Add passive mobs
         entities.add(EntityType.SHEEP);
