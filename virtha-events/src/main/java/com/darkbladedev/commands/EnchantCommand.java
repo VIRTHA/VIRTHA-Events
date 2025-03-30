@@ -14,6 +14,10 @@ public class EnchantCommand implements CommandExecutor{
 
     private AcidResistance AcidResistance;
 
+    public EnchantCommand(AcidResistance AcidResistance) {
+        this.AcidResistance = AcidResistance;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         

@@ -47,6 +47,12 @@ public class ToxicFog {
                         player.addPotionEffects(getPotionEffects());
                         
                         affectedPlayers.add(player.getUniqueId());
+                    } else {
+                        // Remover los efectos si el jugador está en un entorno seguro
+                        player.removePotionEffect(PotionEffectType.POISON);
+                        player.removePotionEffect(PotionEffectType.DARKNESS);
+
+                        affectedPlayers.remove(player.getUniqueId());
                     }
                 }
             }
@@ -59,11 +65,12 @@ public class ToxicFog {
                     toxicFogTask.cancel();
                     toxicFogTask = null;
                     
-                    // Eliminar efectos de veneno de todos los jugadores afectados
+                    // Eliminar todos los efectos de los jugadores afectados
                     for (UUID uuid : affectedPlayers) {
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) {
                             player.removePotionEffect(PotionEffectType.POISON);
+                            player.removePotionEffect(PotionEffectType.DARKNESS);
                         }
                     }
                     
@@ -95,8 +102,10 @@ public class ToxicFog {
 
     private List<PotionEffect> getPotionEffects() {
         List<PotionEffect> potionEffects = new ArrayList<>();
-        potionEffects.add(new PotionEffect(PotionEffectType.POISON, 20, 1, false, true, true));
-        potionEffects.add(new PotionEffect(PotionEffectType.DARKNESS, 100, 2, false, true, true));
+        // Usar una duración muy larga (30 minutos = 36000 ticks) para que sea efectivamente permanente
+        potionEffects.add(new PotionEffect(PotionEffectType.POISON, 36000, 2, false, true, true));
+        // Hacer el efecto de oscuridad permanente durante el evento
+        potionEffects.add(new PotionEffect(PotionEffectType.DARKNESS, 36000, 2, true, false, true));
         return potionEffects;
     }
 }

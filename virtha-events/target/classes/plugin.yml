@@ -23,3 +23,8 @@ permissions:
   virthaevents.access:
     description: "Allows to use Virtha Events core commands."
     default: op
+
+  # Command Permissions
+  virthaevents.command.health:
+    description: "Allows to use /virtha_events health command."
+    default: op

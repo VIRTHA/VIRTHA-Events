@@ -20,7 +20,8 @@ public class CommandTabcompleter implements TabCompleter {
                 // Primer argumento: comandos principales
                 completions.addAll(
                     Arrays.asList(
-                        "run_event"
+                        "run_event",
+                            "health"
                     )
                 );
             } else if (args[0].equalsIgnoreCase("run_event")) {
@@ -68,6 +69,23 @@ public class CommandTabcompleter implements TabCompleter {
                             }
                             break;
                     }
+                }
+            } else if (args[0].equalsIgnoreCase("health")) {
+                if (args.length == 2) {
+                    completions.addAll(
+                        Arrays.asList(
+                            "add",
+                                "remove",
+                                "set",
+                                "add-max",
+                                "remove-max",
+                                "set-max"
+                        )
+                    );
+                } else if (args.length == 3) {
+                    completions.add("amount"); 
+                } else if (args.length == 4) {
+                    sender.getServer().getOnlinePlayers().forEach(player -> completions.add(player.getName())); 
                 }
             }
         }

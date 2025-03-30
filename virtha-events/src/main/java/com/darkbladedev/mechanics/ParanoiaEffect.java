@@ -15,7 +15,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class ParanoiaEffect {
 
     private final Random random = new Random();
-    private BukkitRunnable task;
 
     private final Plugin plugin;
     private final float duration;
@@ -35,7 +34,7 @@ public class ParanoiaEffect {
             return; // No players online
         }
 
-        task = new BukkitRunnable() {
+        BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : players) {
@@ -56,7 +55,6 @@ public class ParanoiaEffect {
             public void run() {
                 if (task != null) {
                     task.cancel();
-                    task = null;
                 }
             }
         }.runTaskLater(plugin, (long) durationSeconds);
@@ -80,8 +78,8 @@ public class ParanoiaEffect {
         sounds.add(Sound.ENTITY_ENDER_DRAGON_GROWL);
         
         // 1.21.4 sounds
-        //sounds.add(Sound.ENTITY_WARDEN_NEARBY_CLOSE);
-        //sounds.add(Sound.ENTITY_CREAKING_ACTIVATE);
+        sounds.add(Sound.ENTITY_WARDEN_NEARBY_CLOSE);
+        sounds.add(Sound.ENTITY_CREAKING_ACTIVATE);
         
         return sounds;
     }

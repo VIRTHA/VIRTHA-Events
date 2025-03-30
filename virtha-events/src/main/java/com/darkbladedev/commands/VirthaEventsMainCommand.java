@@ -27,8 +27,8 @@ public class VirthaEventsMainCommand implements CommandExecutor{
         switch (subCommand) {
             case "run_event":
                 return new CreateEventCommand(plugin).onCommand(sender, command, label, args);
-            //case "list_events":
-            //    return new ListEventsCommand(null).onCommand(sender, command, label, args);
+            case "health":
+                return new HealthCommand().onCommand(sender, command, label, args);
             default:
                 sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents < run_event | enchant >"));
                 return false;
