@@ -68,6 +68,11 @@ public class CommandTabcompleter implements TabCompleter {
                                 completions.add("duration");
                             }
                             break;
+                        case "undead_week":
+                            if (args.length == 4) {
+                                completions.add("duration");
+                            }
+                            break;
                     }
                 }
             } else if (args[0].equalsIgnoreCase("health")) {

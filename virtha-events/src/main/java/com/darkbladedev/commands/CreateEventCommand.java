@@ -10,6 +10,7 @@ import com.darkbladedev.mechanics.AcidWeek;
 import com.darkbladedev.mechanics.MobRain;
 import com.darkbladedev.mechanics.SizeRandomizer;
 import com.darkbladedev.mechanics.ToxicFog;
+import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.utils.ColorText;
 
 public class CreateEventCommand implements CommandExecutor {
@@ -53,6 +54,11 @@ public class CreateEventCommand implements CommandExecutor {
             case "toxic_fog":
                 ToxicFog toxicFog = new ToxicFog(plugin, Long.parseLong(args[2]));
                 toxicFog.start();
+                break;
+            case "undead_week":
+                UndeadWeek undeadWeek = new UndeadWeek(plugin, Long.parseLong(args[2]));
+                undeadWeek.start();
+                break;
             default:
                 break;
         }

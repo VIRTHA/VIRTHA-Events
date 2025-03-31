@@ -14,7 +14,8 @@ public enum EventType {
     TOXIC_FOG("toxic_fog", "Creates a toxic fog that damages players"),
     PARANOIA_EFFECT("paranoia_effect", "Players experience a paranoia effect"),
     ACID_WEEK("acid_week", "The atmosphere and water are contaminated with acid"),
-    MOB_RAIN("mob_rain", "Mobs rain from the sky periodically");
+    MOB_RAIN("mob_rain", "Mobs rain from the sky periodically"),
+    UNDEAD_WEEK("undead_week", "Undead hordes dominate the world with Red Moon nights");
 
     private final String eventName;
     private final String description;

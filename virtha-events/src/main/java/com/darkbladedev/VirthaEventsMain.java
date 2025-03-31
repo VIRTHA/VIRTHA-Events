@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.darkbladedev.commands.VirthaEventsMainCommand;
 import com.darkbladedev.enchants.AcidResistance;
 import com.darkbladedev.mechanics.HealthSteal;
+import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.tabcompleter.CommandTabcompleter;
 import com.darkbladedev.utils.ColorText;
 
@@ -42,6 +43,7 @@ public class VirthaEventsMain extends JavaPlugin{
 
         try {
             pluginManager.registerEvents(new HealthSteal(), this);
+            pluginManager.registerEvents(new UndeadWeek(this, 0), this); // Registrar el listener
             
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Events registered! 📝"));
         } catch (Exception e) {
