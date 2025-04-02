@@ -12,6 +12,7 @@ import com.darkbladedev.mechanics.SizeRandomizer;
 import com.darkbladedev.mechanics.ToxicFog;
 import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.utils.ColorText;
+import com.darkbladedev.utils.TimeConverter;
 
 public class CreateEventCommand implements CommandExecutor {
 
@@ -23,7 +24,7 @@ public class CreateEventCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length < 3) {
+        if (args.length <= 2) {
             sender.sendMessage(ColorText.Colorize("&cUsage: /virtha_events run_event <event-type> <arguments>"));
             return false;
         }
@@ -45,18 +46,41 @@ public class CreateEventCommand implements CommandExecutor {
             case "mob_rain":
                 MobRain mobRain = new MobRain(plugin, Integer.parseInt(args[2]));
                 mobRain.start();
+                break;
             case "size_randomizer":
-                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, Float.parseFloat(args[2]), Float.parseFloat(args[3]), Float.parseFloat(args[4]));
+                long sizeDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (sizeDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, sizeDuration / 20f, Float.parseFloat(args[3]), Float.parseFloat(args[4]));
                 sizeRandomizer.start();
+                break;
             case "acid_week":
-                AcidWeek acidWeek = new AcidWeek(plugin, Long.parseLong(args[2]));
+                long acidDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (acidDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                AcidWeek acidWeek = new AcidWeek(plugin, acidDuration / 20);
                 acidWeek.start();
+                break;
             case "toxic_fog":
-                ToxicFog toxicFog = new ToxicFog(plugin, Long.parseLong(args[2]));
+                long fogDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (fogDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                ToxicFog toxicFog = new ToxicFog(plugin, fogDuration / 20);
                 toxicFog.start();
                 break;
             case "undead_week":
-                UndeadWeek undeadWeek = new UndeadWeek(plugin, Long.parseLong(args[2]));
+                long undeadDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (undeadDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                UndeadWeek undeadWeek = new UndeadWeek(plugin, undeadDuration / 20);
                 undeadWeek.start();
                 break;
             default:

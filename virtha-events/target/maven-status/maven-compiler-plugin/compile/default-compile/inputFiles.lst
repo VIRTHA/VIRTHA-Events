@@ -6,11 +6,12 @@ D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\data\E
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\enchants\AcidResistance.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\AcidWeek.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\HealthSteal.java
-D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\LunarGravity.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\MobRain.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\ParanoiaEffect.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\SizeRandomizer.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\ToxicFog.java
+D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\mechanics\UndeadWeek.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\tabcompleter\CommandTabcompleter.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\utils\ColorText.java
+D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\utils\TimeConverter.java
 D:\Programming\VIRTHA-Events\virtha-events\src\main\java\com\darkbladedev\VirthaEventsMain.java

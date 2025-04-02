@@ -21,9 +21,15 @@ import org.bukkit.scheduler.BukkitTask;
 
 import com.darkbladedev.utils.ColorText;
 
+import xyz.oribuin.eternaltags.EternalAPI;
+import xyz.oribuin.eternaltags.obj.Tag;
+
 import java.util.*;
 
 public class UndeadWeek implements Listener {
+
+    // EternalTags API
+    private final EternalAPI eternalAPI = EternalAPI.getInstance();
     
     private final Plugin plugin;
     private final long duration;
@@ -262,6 +268,8 @@ public class UndeadWeek implements Listener {
                 killer.sendMessage(ColorText.Colorize("&a¡Desafío completado! Has matado a 3 jugadores en la Noche Roja."));
                 killer.sendMessage(ColorText.Colorize("&6Recompensa: Tag 'Necroestallido'"));
                 // Aquí se aplicaría el tag
+
+                eternalAPI.setTag(killer, new Tag("necroestallido", "necroestallido", "&5Necroestallido"));
             }
         }
         

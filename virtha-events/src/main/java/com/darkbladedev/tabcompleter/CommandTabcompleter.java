@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
 import com.darkbladedev.data.EventType;
+import com.darkbladedev.utils.TimeConverter;
 
 
 public class CommandTabcompleter implements TabCompleter {
@@ -32,7 +33,7 @@ public class CommandTabcompleter implements TabCompleter {
                     }
                 } else if (args.length == 3) {
                     // Tercer argumento: duración para todos los eventos
-                    completions.add("duration");
+                    completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                 } else if (args.length >= 4) {
                     // Argumentos adicionales específicos para cada tipo de evento
                     switch (args[1].toLowerCase()) {

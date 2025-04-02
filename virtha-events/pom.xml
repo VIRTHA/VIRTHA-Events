@@ -19,6 +19,11 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+
+        <repository>
+            <id>local-maven-repo</id>
+            <url>file:///${project.basedir}/virtha-events/src/main/dependencies\EternalTags-1.3.2.jar</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -38,6 +43,15 @@
                     <groupId>com.google.code.gson</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.oribuin.eternaltags</groupId>
+            <artifactId>eternaltags</artifactId>
+            <version>1.3.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/dependencies/EternalTags-1.3.2.jar</systemPath>
         </dependency>
     </dependencies>
 

@@ -132,7 +132,7 @@ public class AcidWeek implements Listener {
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, 60L); // Ejecutar cada 3 segundos (60 ticks)
+        }.runTaskTimer(plugin, 0L, 20L); // Ejecutar cada 1 segundos (20 ticks)
     }
     
     private void startWeatherControlTask() {

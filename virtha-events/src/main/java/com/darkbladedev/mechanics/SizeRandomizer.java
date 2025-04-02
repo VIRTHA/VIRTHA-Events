@@ -15,6 +15,7 @@ public class SizeRandomizer {
     private final float min;
     private final float max;
     private final float duration;
+    private BukkitRunnable task;
 
     
     public SizeRandomizer(Plugin plugin, float duration, float min, float max) {
@@ -36,7 +37,7 @@ public class SizeRandomizer {
             return; // No players online
         }
         
-        BukkitRunnable task = new BukkitRunnable() {
+        task = new BukkitRunnable() {
             @Override
             public void run() {
                 randomizePlayerSizes(players);
