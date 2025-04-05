@@ -9,6 +9,7 @@ import com.darkbladedev.enchants.AcidResistance;
 import com.darkbladedev.mechanics.HealthSteal;
 import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.mechanics.WeeklyEventManager;
+import com.darkbladedev.placeholders.VirthaEventsExpansion;
 import com.darkbladedev.tabcompleter.CommandTabcompleter;
 import com.darkbladedev.utils.ColorText;
 
@@ -17,6 +18,7 @@ public class VirthaEventsMain extends JavaPlugin{
     public static VirthaEventsMain plugin;
     public static AcidResistance acidResistance;
     private WeeklyEventManager weeklyEventManager;
+    private VirthaEventsExpansion placeholderExpansion;
 
     @Override
     public void onEnable() {
@@ -28,6 +30,19 @@ public class VirthaEventsMain extends JavaPlugin{
         // Inicializar y arrancar el sistema de eventos semanales
         weeklyEventManager = new WeeklyEventManager(this);
         weeklyEventManager.initialize();
+        
+        // Registrar la expansión de PlaceholderAPI si está disponible
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            placeholderExpansion = new VirthaEventsExpansion(this);
+            placeholderExpansion.register();
+            Bukkit.getConsoleSender().sendMessage(
+                ColorText.Colorize("&6PlaceholderAPI integration enabled! 📊")
+            );
+        } else {
+            Bukkit.getConsoleSender().sendMessage(
+                ColorText.Colorize("&cPlaceholderAPI not found, placeholders will not be available.")
+            );
+        }
 
         Bukkit.getConsoleSender().sendMessage(
             ColorText.Colorize("&aThe plugin has been activated! ✅")
@@ -39,6 +54,11 @@ public class VirthaEventsMain extends JavaPlugin{
         // Guardar el estado del evento semanal al apagar
         if (weeklyEventManager != null) {
             weeklyEventManager.shutdown();
+        }
+        
+        // Desregistrar la expansión de PlaceholderAPI si está activa
+        if (placeholderExpansion != null) {
+            placeholderExpansion.unregister();
         }
         
         Bukkit.getConsoleSender().sendMessage(

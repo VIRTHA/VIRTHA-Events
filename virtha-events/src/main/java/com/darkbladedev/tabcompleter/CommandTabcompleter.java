@@ -7,7 +7,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import com.darkbladedev.data.EventType;
 import com.darkbladedev.utils.TimeConverter;
 
 
@@ -28,9 +27,18 @@ public class CommandTabcompleter implements TabCompleter {
             } else if (args[0].equalsIgnoreCase("run_event")) {
                 if (args.length == 2) {
                     // Segundo argumento: tipos de eventos
-                    for (EventType type : EventType.values()) {
-                        completions.add(type.getEventName());
-                    }
+                    completions.addAll(
+                        Arrays.asList(
+                            "size_randomizer",
+                            "acid_week",
+                            "toxic_fog",
+                            "paranoia_effect",
+                            "mob_rain",
+                            "undead_week",
+                            "explosive_week",
+                            "blood_and_iron_week"
+                        )
+                    );
                 } else if (args.length == 3) {
                     // Tercer argumento: duración para todos los eventos
                     completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));

@@ -136,6 +136,18 @@ public class WeeklyEventManager {
                 currentEvent = paranoiaEffect;
                 break;
                 
+            case "explosive_week":
+                ExplosiveWeek explosiveWeek = new ExplosiveWeek(plugin, durationTicks);
+                explosiveWeek.start();
+                currentEvent = explosiveWeek;
+                break;
+                
+            case "blood_and_iron_week":
+                BloodAndIronWeek bloodAndIronWeek = new BloodAndIronWeek(plugin, durationTicks);
+                bloodAndIronWeek.start();
+                currentEvent = bloodAndIronWeek;
+                break;
+                
             default:
                 Bukkit.getConsoleSender().sendMessage(
                     ColorText.Colorize("&cEvento no implementado para ejecución semanal: " + eventType.getEventName())
@@ -189,7 +201,7 @@ public class WeeklyEventManager {
         
         // Detener el evento según su tipo
         if (currentEvent instanceof SizeRandomizer) {
-            // No es necesario detenerlo explícitamente, ya tiene su propio temporizador
+            ((SizeRandomizer) currentEvent).stop();
         } else if (currentEvent instanceof AcidWeek) {
             ((AcidWeek) currentEvent).stop();
         } else if (currentEvent instanceof ToxicFog) {
@@ -198,6 +210,10 @@ public class WeeklyEventManager {
             ((UndeadWeek) currentEvent).stop();
         } else if (currentEvent instanceof ParanoiaEffect) {
             ((ParanoiaEffect) currentEvent).stop();
+        } else if (currentEvent instanceof ExplosiveWeek) {
+            ((ExplosiveWeek) currentEvent).stop();
+        } else if (currentEvent instanceof BloodAndIronWeek) {
+            ((BloodAndIronWeek) currentEvent).stop();
         }
         
         isEventActive = false;

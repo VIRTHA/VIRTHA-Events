@@ -269,7 +269,7 @@ public class UndeadWeek implements Listener {
                 killer.sendMessage(ColorText.Colorize("&6Recompensa: Tag 'Necroestallido'"));
                 // Aquí se aplicaría el tag
 
-                eternalAPI.setTag(killer, new Tag("necroestallido", "necroestallido", "&5Necroestallido"));
+                eternalAPI.setTag(killer, new Tag("necroestallido", "necroestallido", "&x&1&7&c&e&2&9N&x&1&6&c&9&3&7e&x&1&4&c&4&4&5c&x&1&3&c&0&5&3r&x&1&2&b&b&6&0o&x&1&0&b&6&6&ee&x&0&f&b&1&7&cs&x&0&e&a&d&8&at&x&0&d&a&8&9&8a&x&0&b&a&3&a&6l&x&0&a&9&e&b&3l&x&0&9&9&a&c&1i&x&0&7&9&5&c&fd&x&0&6&9&0&d&do")); //&#49bf40N&#46bd49e&#43bc53c&#41ba5cr&#3eb865o&#3bb76fe&#38b578s&#36b381t&#33b18aa&#30b094l&#2dae9dl&#2baca6i&#28abb0d&#25a9b9o
             }
         }
         

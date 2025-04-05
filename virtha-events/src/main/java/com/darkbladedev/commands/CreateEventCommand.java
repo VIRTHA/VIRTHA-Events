@@ -7,6 +7,8 @@ import org.bukkit.plugin.Plugin;
 
 import com.darkbladedev.data.EventType;
 import com.darkbladedev.mechanics.AcidWeek;
+import com.darkbladedev.mechanics.BloodAndIronWeek;
+import com.darkbladedev.mechanics.ExplosiveWeek;
 import com.darkbladedev.mechanics.MobRain;
 import com.darkbladedev.mechanics.ParanoiaEffect;
 import com.darkbladedev.mechanics.SizeRandomizer;
@@ -54,7 +56,29 @@ public class CreateEventCommand implements CommandExecutor {
                     sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
                     return false;
                 }
-                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, sizeDuration / 20f, Float.parseFloat(args[3]), Float.parseFloat(args[4]));
+                
+                float minSize = 0.5f;
+                float maxSize = 2.0f;
+                
+                if (args.length >= 4) {
+                    try {
+                        minSize = Float.parseFloat(args[3]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ColorText.Colorize("&cTamaño mínimo inválido. Debe ser un número."));
+                        return false;
+                    }
+                }
+                
+                if (args.length >= 5) {
+                    try {
+                        maxSize = Float.parseFloat(args[4]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ColorText.Colorize("&cTamaño máximo inválido. Debe ser un número."));
+                        return false;
+                    }
+                }
+                
+                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, sizeDuration, minSize, maxSize);
                 sizeRandomizer.start();
                 break;
             case "acid_week":
@@ -63,7 +87,8 @@ public class CreateEventCommand implements CommandExecutor {
                     sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
                     return false;
                 }
-                AcidWeek acidWeek = new AcidWeek(plugin, acidDuration / 20);
+                
+                AcidWeek acidWeek = new AcidWeek(plugin, acidDuration);
                 acidWeek.start();
                 break;
             case "toxic_fog":
@@ -72,8 +97,29 @@ public class CreateEventCommand implements CommandExecutor {
                     sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
                     return false;
                 }
-                ToxicFog toxicFog = new ToxicFog(plugin, fogDuration / 20);
+                
+                ToxicFog toxicFog = new ToxicFog(plugin, fogDuration);
                 toxicFog.start();
+                break;
+            case "paranoia_effect":
+                long paranoiaDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (paranoiaDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                
+                long interval = 1; // Default interval
+                if (args.length >= 4) {
+                    try {
+                        interval = Long.parseLong(args[3]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ColorText.Colorize("&cIntervalo inválido. Debe ser un número."));
+                        return false;
+                    }
+                }
+                
+                ParanoiaEffect paranoiaEffect = new ParanoiaEffect(plugin, paranoiaDuration, interval);
+                paranoiaEffect.start();
                 break;
             case "undead_week":
                 long undeadDuration = TimeConverter.parseTimeToTicks(args[2]);
@@ -81,19 +127,29 @@ public class CreateEventCommand implements CommandExecutor {
                     sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
                     return false;
                 }
-                UndeadWeek undeadWeek = new UndeadWeek(plugin, undeadDuration / 20);
+                
+                UndeadWeek undeadWeek = new UndeadWeek(plugin, undeadDuration);
                 undeadWeek.start();
                 break;
-            case "paranoia_effect":
-                long paranoiaDuration = TimeConverter.parseTimeToTicks(args[2]);
-                long paranoiaFrequency = TimeConverter.parseTimeToTicks(args[3]);
-
-                if (paranoiaDuration <= 0) {
+            case "explosive_week":
+                long explosiveDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (explosiveDuration <= 0) {
                     sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
                     return false;
                 }
-                ParanoiaEffect paranoiaEffect = new ParanoiaEffect(plugin, paranoiaDuration / 20, paranoiaFrequency / 20);
-                paranoiaEffect.start();
+                
+                ExplosiveWeek explosiveWeek = new ExplosiveWeek(plugin, explosiveDuration);
+                explosiveWeek.start();
+                break;
+            case "blood_and_iron_week":
+                long bloodDuration = TimeConverter.parseTimeToTicks(args[2]);
+                if (bloodDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                
+                BloodAndIronWeek bloodAndIronWeek = new BloodAndIronWeek(plugin, bloodDuration);
+                bloodAndIronWeek.start();
                 break;
             default:
                 break;

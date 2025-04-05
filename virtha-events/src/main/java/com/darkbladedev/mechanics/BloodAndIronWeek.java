@@ -1,0 +1,480 @@
+package com.darkbladedev.mechanics;
+
+import com.darkbladedev.utils.ColorText;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
+import xyz.oribuin.eternaltags.EternalAPI;
+import xyz.oribuin.eternaltags.obj.Tag;
+
+import java.util.*;
+
+public class BloodAndIronWeek implements Listener {
+
+    // EternalTags API
+    private final EternalAPI eternalAPI = EternalAPI.getInstance();
+    
+    private final Plugin plugin;
+    private final long duration;
+    private boolean isActive = false;
+    private BukkitTask mainTask;
+    private BukkitTask endTask;
+    
+    // Player tracking maps
+    private final Map<UUID, Long> lastHostileMobKillTime = new HashMap<>();
+    private final Map<UUID, Long> lastPlayerKillTime = new HashMap<>();
+    private final Map<UUID, Integer> playerKillCount = new HashMap<>();
+    private final Map<UUID, Integer> consecutiveKills = new HashMap<>();
+    private final Set<UUID> instantDamageKillers = new HashSet<>();
+    private final Set<UUID> pentakillPlayers = new HashSet<>();
+    private final Set<UUID> survivedPlayers = new HashSet<>();
+    private final Set<UUID> deadPlayers = new HashSet<>();
+    private final Set<UUID> awardedAdrenaline = new HashSet<>();
+    
+    // Constants
+    private static final long MOB_KILL_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+    private static final long PLAYER_KILL_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+    
+    public BloodAndIronWeek(Plugin plugin, long duration) {
+        this.plugin = plugin;
+        this.duration = duration;
+    }
+    
+    public void start() {
+        if (isActive) return;
+        
+        isActive = true;
+        
+        // Register events
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        
+        // Add all online players to tracking
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            initializePlayer(player);
+        }
+        
+        // Announce the start of the event
+        Bukkit.broadcastMessage(ColorText.Colorize("&4[&cSemana de Sangre y Hierro&4] &c¡El coliseo del caos está abierto. Elimina o sé eliminado!"));
+        
+        // Announce challenges
+        announceChallenges();
+        
+        // Start the main task that checks conditions every second
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                checkMobKillTimeout();
+                checkPlayerKillTimeout();
+                checkArmorEffects();
+                checkWeaponEffects();
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Every second
+        
+        // Schedule the end of the event
+        endTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                stop();
+            }
+        }.runTaskLater(plugin, duration * 20L);
+    }
+    
+    public void stop() {
+        if (!isActive) return;
+        
+        isActive = false;
+        
+        // Cancel tasks
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+        
+        if (endTask != null) {
+            endTask.cancel();
+            endTask = null;
+        }
+        
+        // Award survival challenge rewards
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID playerId = player.getUniqueId();
+            if (!deadPlayers.contains(playerId) && playerKillCount.getOrDefault(playerId, 0) >= 10) {
+                awardSurvivalChallenge(player);
+            }
+        }
+        
+        // Clear all tracking data
+        lastHostileMobKillTime.clear();
+        lastPlayerKillTime.clear();
+        playerKillCount.clear();
+        consecutiveKills.clear();
+        instantDamageKillers.clear();
+        pentakillPlayers.clear();
+        survivedPlayers.clear();
+        deadPlayers.clear();
+        awardedAdrenaline.clear();
+        
+        // Announce the end of the event
+        Bukkit.broadcastMessage(ColorText.Colorize("&4[&cSemana de Sangre y Hierro&4] &cEl coliseo del caos ha cerrado sus puertas... por ahora."));
+    }
+    
+    private void initializePlayer(Player player) {
+        UUID playerId = player.getUniqueId();
+        
+        // Initialize kill times to current time
+        lastHostileMobKillTime.put(playerId, System.currentTimeMillis());
+        lastPlayerKillTime.put(playerId, System.currentTimeMillis());
+        
+        // Initialize kill counts
+        if (!playerKillCount.containsKey(playerId)) {
+            playerKillCount.put(playerId, 0);
+        }
+        
+        if (!consecutiveKills.containsKey(playerId)) {
+            consecutiveKills.put(playerId, 0);
+        }
+        
+        // Add to survived players list if not already dead
+        if (!deadPlayers.contains(playerId)) {
+            survivedPlayers.add(playerId);
+        }
+    }
+    
+    private void checkMobKillTimeout() {
+        long currentTime = System.currentTimeMillis();
+        
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID playerId = player.getUniqueId();
+            
+            // Skip players who joined after the event started
+            if (!lastHostileMobKillTime.containsKey(playerId)) {
+                continue;
+            }
+            
+            long lastKillTime = lastHostileMobKillTime.get(playerId);
+            if (currentTime - lastKillTime > MOB_KILL_TIMEOUT) {
+                // Player hasn't killed a hostile mob in 10 minutes
+                // Reduce health by 2 hearts (4 health points)
+                double currentMaxHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+                double newMaxHealth = Math.max(2.0, currentMaxHealth - 4.0); // Minimum 1 heart
+                
+                player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(newMaxHealth);
+                
+                // Ensure current health doesn't exceed max health
+                if (player.getHealth() > newMaxHealth) {
+                    player.setHealth(newMaxHealth);
+                }
+                
+                player.sendMessage(ColorText.Colorize("&c¡No has matado a un mob hostil en 10 minutos! Pierdes 2 corazones."));
+                
+                // Reset the timer
+                lastHostileMobKillTime.put(playerId, currentTime);
+            }
+        }
+    }
+    
+    private void checkPlayerKillTimeout() {
+        long currentTime = System.currentTimeMillis();
+        
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID playerId = player.getUniqueId();
+            
+            // Skip players who joined after the event started
+            if (!lastPlayerKillTime.containsKey(playerId)) {
+                continue;
+            }
+            
+            long lastKillTime = lastPlayerKillTime.get(playerId);
+            if (currentTime - lastKillTime > PLAYER_KILL_TIMEOUT) {
+                // Player hasn't killed another player in 1 hour
+                // Reduce health by 5 hearts (10 health points)
+                double currentMaxHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+                double newMaxHealth = Math.max(2.0, currentMaxHealth - 10.0); // Minimum 1 heart
+                
+                player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(newMaxHealth);
+                
+                // Ensure current health doesn't exceed max health
+                if (player.getHealth() > newMaxHealth) {
+                    player.setHealth(newMaxHealth);
+                }
+                
+                player.sendMessage(ColorText.Colorize("&c¡No has matado a un jugador en 1 hora! Pierdes 5 corazones."));
+                
+                // Reset the timer
+                lastPlayerKillTime.put(playerId, currentTime);
+            }
+        }
+    }
+    
+    private void checkArmorEffects() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            boolean hasHighTierArmor = false;
+            
+            // Check each armor piece
+            ItemStack[] armor = player.getInventory().getArmorContents();
+            for (ItemStack item : armor) {
+                if (item != null && (
+                    item.getType().name().contains("DIAMOND") || 
+                    item.getType().name().contains("NETHERITE"))) {
+                    hasHighTierArmor = true;
+                    break;
+                }
+            }
+            
+            // Apply effects if wearing diamond or netherite armor
+            if (hasHighTierArmor) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 40, 1)); // Mining Fatigue II
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1)); // Slowness II
+            }
+        }
+    }
+    
+    private void checkWeaponEffects() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ItemStack mainHand = player.getInventory().getItemInMainHand();
+            
+            // Check if holding diamond or netherite sword
+            if (mainHand != null && (
+                mainHand.getType() == Material.DIAMOND_SWORD || 
+                mainHand.getType() == Material.NETHERITE_SWORD)) {
+                
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 200, 0)); // Nausea I for 10 seconds
+            }
+        }
+    }
+    
+    private void announceChallenges() {
+        Bukkit.broadcastMessage(ColorText.Colorize("&6&l=== DESAFÍOS DE LA SEMANA DE SANGRE Y HIERRO ==="));
+        Bukkit.broadcastMessage(ColorText.Colorize("&e1. Mata a 3 jugadores"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&7   Recompensa: Encantamiento Adrenaline"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&e2. Mata a un jugador con poción de daño instantáneo"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&7   Recompensa: +1 corazón permanente"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&e3. Mata a 5 jugadores seguidos sin morir"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&7   Recompensa: Tag \"Pentakill\""));
+        Bukkit.broadcastMessage(ColorText.Colorize("&e4. Sobrevive sin morir en todo el evento (con más de 10 kills)"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&7   Recompensa: +1 corazón permanente"));
+    }
+    
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (!isActive) return;
+        
+        LivingEntity entity = event.getEntity();
+        Player killer = entity.getKiller();
+        
+        // Only process if killed by a player
+        if (killer == null) return;
+        
+        // Check if the killed entity is a hostile mob
+        if (isHostileMob(entity.getType())) {
+            // Update last hostile mob kill time
+            lastHostileMobKillTime.put(killer.getUniqueId(), System.currentTimeMillis());
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!isActive) return;
+        
+        Player victim = event.getEntity();
+        UUID victimId = victim.getUniqueId();
+        
+        // Mark player as dead for survival challenge
+        deadPlayers.add(victimId);
+        survivedPlayers.remove(victimId);
+        
+        // Reset consecutive kills
+        consecutiveKills.put(victimId, 0);
+        
+        // Check if killed by another player
+        if (victim.getKiller() != null) {
+            Player killer = victim.getKiller();
+            UUID killerId = killer.getUniqueId();
+            
+            // Update last player kill time
+            lastPlayerKillTime.put(killerId, System.currentTimeMillis());
+            
+            // Increment kill counts
+            int kills = playerKillCount.getOrDefault(killerId, 0) + 1;
+            playerKillCount.put(killerId, kills);
+            
+            int consecutiveKillCount = consecutiveKills.getOrDefault(killerId, 0) + 1;
+            consecutiveKills.put(killerId, consecutiveKillCount);
+            
+            // Check for kill challenges
+            checkKillChallenges(killer, kills, consecutiveKillCount);
+            
+            // Check if killed by instant damage potion
+            if (event.getEntity().getLastDamageCause() != null && 
+                event.getEntity().getLastDamageCause().getCause() == DamageCause.MAGIC) {
+                instantDamageKillers.add(killerId);
+                awardInstantDamageKill(killer);
+            }
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!isActive) return;
+        
+        // Initialize player data
+        initializePlayer(event.getPlayer());
+    }
+    
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        if (!isActive) return;
+        
+        // No special handling needed for now
+    }
+    
+    @EventHandler
+    public void onItemHeld(PlayerItemHeldEvent event) {
+        if (!isActive) return;
+        
+        // This will trigger a check for weapon effects on the next tick
+    }
+    
+    private boolean isHostileMob(EntityType type) {
+        switch (type) {
+            case ZOMBIE:
+            case SKELETON:
+            case CREEPER:
+            case SPIDER:
+            case CAVE_SPIDER:
+            case ENDERMAN:
+            case WITCH:
+            case BLAZE:
+            case GHAST:
+            case MAGMA_CUBE:
+            case SLIME:
+            case PHANTOM:
+            case DROWNED:
+            case HUSK:
+            case STRAY:
+            case PILLAGER:
+            case RAVAGER:
+            case VEX:
+            case VINDICATOR:
+            case EVOKER:
+            case WITHER_SKELETON:
+            case GUARDIAN:
+            case ELDER_GUARDIAN:
+            case SHULKER:
+            case ENDERMITE:
+            case SILVERFISH:
+                return true;
+            default:
+                return false;
+        }
+    }
+    
+    private void checkKillChallenges(Player killer, int totalKills, int consecutiveKills) {
+        UUID killerId = killer.getUniqueId();
+        
+        // Challenge 1: Kill 3 players
+        if (totalKills >= 3 && !awardedAdrenaline.contains(killerId)) {
+            awardAdrenalineEnchantment(killer);
+        }
+        
+        // Challenge 3: Kill 5 players in a row without dying
+        if (consecutiveKills >= 5 && !pentakillPlayers.contains(killerId)) {
+            awardPentakillTag(killer);
+        }
+    }
+    
+    private void awardAdrenalineEnchantment(Player player) {
+        UUID playerId = player.getUniqueId();
+        
+        if (awardedAdrenaline.contains(playerId)) {
+            return; // Already awarded
+        }
+        
+        player.sendMessage(ColorText.Colorize("&a&l¡DESAFÍO COMPLETADO!"));
+        player.sendMessage(ColorText.Colorize("&eHas matado a 3 jugadores."));
+        player.sendMessage(ColorText.Colorize("&6Recompensa: Encantamiento Adrenaline"));
+        
+        awardedAdrenaline.add(playerId);
+        
+        // Announce to server
+        Bukkit.broadcastMessage(ColorText.Colorize("&6" + player.getName() + " &eha completado el desafío: &7Matar a 3 jugadores"));
+    }
+    
+    private void awardInstantDamageKill(Player player) {
+        UUID playerId = player.getUniqueId();
+        
+        if (instantDamageKillers.contains(playerId)) {
+            return; // Already awarded
+        }
+        
+        player.sendMessage(ColorText.Colorize("&a&l¡DESAFÍO COMPLETADO!"));
+        player.sendMessage(ColorText.Colorize("&eHas matado a un jugador con poción de daño instantáneo."));
+        player.sendMessage(ColorText.Colorize("&6Recompensa: +1 corazón permanente"));
+        
+        // Add one heart to player's max health
+        double currentMaxHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+        player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(currentMaxHealth + 2.0);
+        
+        instantDamageKillers.add(playerId);
+        
+        // Announce to server
+        Bukkit.broadcastMessage(ColorText.Colorize("&6" + player.getName() + " &eha completado el desafío: &7Matar a un jugador con poción de daño instantáneo"));
+    }
+    
+    private void awardPentakillTag(Player player) {
+        UUID playerId = player.getUniqueId();
+        
+        if (pentakillPlayers.contains(playerId)) {
+            return; // Already awarded
+        }
+        
+        player.sendMessage(ColorText.Colorize("&a&l¡DESAFÍO COMPLETADO!"));
+        player.sendMessage(ColorText.Colorize("&eHas matado a 5 jugadores seguidos sin morir."));
+        player.sendMessage(ColorText.Colorize("&6Recompensa: Tag \"Pentakill\""));
+        
+        // Award the tag using EternalTags
+        eternalAPI.setTag(player, new Tag("pentakill", "pentakill", "&x&d&d&0&0&c&7P&x&d&b&0&4&b&2e&x&d&8&0&9&9&en&x&d&6&0&d&8&9t&x&d&3&1&1&7&5a&x&d&1&1&5&6&0k&x&c&f&1&a&4&bi&x&c&c&1&e&3&7l&x&c&a&2&2&2&2l"));
+        
+        pentakillPlayers.add(playerId);
+        
+        // Announce to server
+        Bukkit.broadcastMessage(ColorText.Colorize("&6" + player.getName() + " &eha completado el desafío: &7Matar a 5 jugadores seguidos sin morir"));
+    }
+    
+    private void awardSurvivalChallenge(Player player) {
+        UUID playerId = player.getUniqueId();
+        
+        if (!survivedPlayers.contains(playerId) || playerKillCount.getOrDefault(playerId, 0) < 10) {
+            return; // Didn't meet requirements
+        }
+        
+        player.sendMessage(ColorText.Colorize("&a&l¡DESAFÍO COMPLETADO!"));
+        player.sendMessage(ColorText.Colorize("&eHas sobrevivido todo el evento sin morir y con más de 10 kills."));
+        player.sendMessage(ColorText.Colorize("&6Recompensa: +1 corazón permanente"));
+        
+        // Add one heart to player's max health
+        double currentMaxHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+        player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(currentMaxHealth + 2.0);
+        
+        // Announce to server
+        Bukkit.broadcastMessage(ColorText.Colorize("&6" + player.getName() + " &eha completado el desafío: &7Sobrevivir todo el evento sin morir con más de 10 kills"));
+    }
+}
