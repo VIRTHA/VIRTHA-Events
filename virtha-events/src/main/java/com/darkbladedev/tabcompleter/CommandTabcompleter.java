@@ -51,27 +51,27 @@ public class CommandTabcompleter implements TabCompleter {
                             break;
                         case "acid_week":
                             if (args.length == 4) {
-                                completions.add("duration");
+                                completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                             }
                             break;
                         case "paranoia_effect":
                             if (args.length == 4) {
-                                completions.add("duration");
+                                completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                             }
                             break;
                         case "lunar_gravity":
                             if (args.length == 4) {
-                                completions.add("duration");
+                                completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                             }
                             break;
                         case "toxic_fog":
                             if (args.length == 4) {
-                                completions.add("duration");
+                                completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                             }
                             break;
                         case "undead_week":
                             if (args.length == 4) {
-                                completions.add("duration");
+                                completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                             }
                             break;
                     }

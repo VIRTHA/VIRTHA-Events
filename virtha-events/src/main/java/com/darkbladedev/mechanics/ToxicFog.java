@@ -35,7 +35,6 @@ public class ToxicFog {
         if (isActive) return;
         
         isActive = true;
-        Long durationSeconds = duration * 20;
         
         toxicFogTask = new BukkitRunnable() {
             @Override
@@ -61,6 +60,18 @@ public class ToxicFog {
         new BukkitRunnable() {
             @Override
             public void run() {
+                stop();
+            }
+        }.runTaskLater(plugin, duration * 20L);
+    }
+
+    public void stop() {
+        if (!isActive) return;
+
+        Long durationSeconds = duration * 20;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
                 if (toxicFogTask != null) {
                     toxicFogTask.cancel();
                     toxicFogTask = null;
@@ -80,6 +91,7 @@ public class ToxicFog {
             }
         }.runTaskLater(plugin, durationSeconds);
     }
+    
 
     
     private boolean isPlayerSafe(Player player) {

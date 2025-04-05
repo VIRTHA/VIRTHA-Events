@@ -80,12 +80,12 @@ public class UndeadWeek implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                end();
+                stop();
             }
         }.runTaskLater(plugin, duration * 20L);
     }
     
-    private void end() {
+    public void stop() {
         if (!isActive) return;
         
         if (mainTask != null) {

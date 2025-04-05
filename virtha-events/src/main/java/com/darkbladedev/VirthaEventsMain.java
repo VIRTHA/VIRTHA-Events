@@ -8,23 +8,26 @@ import com.darkbladedev.commands.VirthaEventsMainCommand;
 import com.darkbladedev.enchants.AcidResistance;
 import com.darkbladedev.mechanics.HealthSteal;
 import com.darkbladedev.mechanics.UndeadWeek;
+import com.darkbladedev.mechanics.WeeklyEventManager;
 import com.darkbladedev.tabcompleter.CommandTabcompleter;
 import com.darkbladedev.utils.ColorText;
 
 public class VirthaEventsMain extends JavaPlugin{
 
     public static VirthaEventsMain plugin;
-
     public static AcidResistance acidResistance;
+    private WeeklyEventManager weeklyEventManager;
 
     @Override
     public void onEnable() {
-
         plugin = this;
-
 
         registerCommands();
         registerEvents();
+        
+        // Inicializar y arrancar el sistema de eventos semanales
+        weeklyEventManager = new WeeklyEventManager(this);
+        weeklyEventManager.initialize();
 
         Bukkit.getConsoleSender().sendMessage(
             ColorText.Colorize("&aThe plugin has been activated! ✅")
@@ -33,6 +36,11 @@ public class VirthaEventsMain extends JavaPlugin{
 
     @Override
     public void onDisable() {
+        // Guardar el estado del evento semanal al apagar
+        if (weeklyEventManager != null) {
+            weeklyEventManager.shutdown();
+        }
+        
         Bukkit.getConsoleSender().sendMessage(
             ColorText.Colorize("&aThe plugin has been disabled! ✅")
         );
@@ -54,35 +62,17 @@ public class VirthaEventsMain extends JavaPlugin{
 
     public void registerCommands() {
         try {
-            if (getCommand("virtha_events") != null) {
-                getCommand("virtha_events").setExecutor(new VirthaEventsMainCommand(this));
-                getCommand("virtha_events").setTabCompleter(new CommandTabcompleter());
-            }
+            getCommand("virtha_events").setExecutor(new VirthaEventsMainCommand(this));
+            getCommand("virtha_events").setTabCompleter(new CommandTabcompleter());
+            
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Commands registered! 📝"));
         } catch (Exception e) {
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&cError registering commands!"));
             e.printStackTrace();
         }
     }
-
-    /*
-    public static void registerEnchantment(Enchantment enchantment) {
-        boolean registered = true;
-        try {
-            Field f = Enchantment.class.getDeclaredField("acceptingNew");
-            f.setAccessible(true);
-            f.set(null, true);
-            Enchantment.registerEnchantment(enchantment);
-            
-        } catch (Exception e) {
-            registered = false;
-            e.printStackTrace();
-        }
-        if(registered){
-            // It's been registered!
-        }
+    
+    public WeeklyEventManager getWeeklyEventManager() {
+        return weeklyEventManager;
     }
-    */
-
-
 }

@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import com.darkbladedev.data.EventType;
 import com.darkbladedev.mechanics.AcidWeek;
 import com.darkbladedev.mechanics.MobRain;
+import com.darkbladedev.mechanics.ParanoiaEffect;
 import com.darkbladedev.mechanics.SizeRandomizer;
 import com.darkbladedev.mechanics.ToxicFog;
 import com.darkbladedev.mechanics.UndeadWeek;
@@ -82,6 +83,17 @@ public class CreateEventCommand implements CommandExecutor {
                 }
                 UndeadWeek undeadWeek = new UndeadWeek(plugin, undeadDuration / 20);
                 undeadWeek.start();
+                break;
+            case "paranoia_effect":
+                long paranoiaDuration = TimeConverter.parseTimeToTicks(args[2]);
+                long paranoiaFrequency = TimeConverter.parseTimeToTicks(args[3]);
+
+                if (paranoiaDuration <= 0) {
+                    sender.sendMessage(ColorText.Colorize("&cDuración inválida. Ejemplo: 1h, 30m, 2d"));
+                    return false;
+                }
+                ParanoiaEffect paranoiaEffect = new ParanoiaEffect(plugin, paranoiaDuration / 20, paranoiaFrequency / 20);
+                paranoiaEffect.start();
                 break;
             default:
                 break;
