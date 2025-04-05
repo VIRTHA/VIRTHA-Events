@@ -21,6 +21,7 @@ public class ToxicFog {
     private final Set<UUID> affectedPlayers;
     private BukkitTask toxicFogTask;
     private boolean isActive = false;
+    private boolean isPaused = false;
 
     private final long duration;
     
@@ -35,28 +36,12 @@ public class ToxicFog {
         if (isActive) return;
         
         isActive = true;
+        isPaused = false;
         
-        toxicFogTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    // Verificar si el jugador está en agua o bajo techo
-                    if (!isPlayerSafe(player)) {
-                        // Aplicar los efectos
-                        player.addPotionEffects(getPotionEffects());
-                        
-                        affectedPlayers.add(player.getUniqueId());
-                    } else {
-                        // Remover los efectos si el jugador está en un entorno seguro
-                        player.removePotionEffect(PotionEffectType.POISON);
-                        player.removePotionEffect(PotionEffectType.DARKNESS);
-
-                        affectedPlayers.remove(player.getUniqueId());
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 20L); // Verificar cada 1 segundo (20 ticks)
-
+        // Start the toxic fog task
+        startToxicFogTask();
+        
+        // Schedule the end of the event
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -67,29 +52,24 @@ public class ToxicFog {
 
     public void stop() {
         if (!isActive) return;
-
-        Long durationSeconds = duration * 20;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (toxicFogTask != null) {
-                    toxicFogTask.cancel();
-                    toxicFogTask = null;
-                    
-                    // Eliminar todos los efectos de los jugadores afectados
-                    for (UUID uuid : affectedPlayers) {
-                        Player player = Bukkit.getPlayer(uuid);
-                        if (player != null && player.isOnline()) {
-                            player.removePotionEffect(PotionEffectType.POISON);
-                            player.removePotionEffect(PotionEffectType.DARKNESS);
-                        }
-                    }
-                    
-                    affectedPlayers.clear();
-                    isActive = false;
-                }
+        
+        isActive = false;
+        
+        if (toxicFogTask != null) {
+            toxicFogTask.cancel();
+            toxicFogTask = null;
+        }
+        
+        // Remove all effects from affected players
+        for (UUID uuid : affectedPlayers) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                player.removePotionEffect(PotionEffectType.POISON);
+                player.removePotionEffect(PotionEffectType.DARKNESS);
             }
-        }.runTaskLater(plugin, durationSeconds);
+        }
+        
+        affectedPlayers.clear();
     }
     
 
@@ -115,9 +95,78 @@ public class ToxicFog {
     private List<PotionEffect> getPotionEffects() {
         List<PotionEffect> potionEffects = new ArrayList<>();
         // Usar una duración muy larga (30 minutos = 36000 ticks) para que sea efectivamente permanente
-        potionEffects.add(new PotionEffect(PotionEffectType.POISON, 36000, 2, false, true, true));
+        potionEffects.add(new PotionEffect(PotionEffectType.POISON, 40, 2, false, true, true));
         // Hacer el efecto de oscuridad permanente durante el evento
-        potionEffects.add(new PotionEffect(PotionEffectType.DARKNESS, 36000, 2, true, false, true));
+        potionEffects.add(new PotionEffect(PotionEffectType.DARKNESS, 40, 2, true, false, true));
         return potionEffects;
+    }
+
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel the toxic fog task
+        if (toxicFogTask != null) {
+            toxicFogTask.cancel();
+            toxicFogTask = null;
+        }
+        
+        // Remove effects temporarily
+        for (UUID uuid : affectedPlayers) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                player.removePotionEffect(PotionEffectType.POISON);
+                player.removePotionEffect(PotionEffectType.DARKNESS);
+            }
+        }
+    }
+
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart the toxic fog task
+        startToxicFogTask();
+    }
+
+    /**
+     * Determines if a player should be affected by the toxic fog
+     * @param player The player to check
+     * @return true if the player should be affected, false otherwise
+     */
+    @SuppressWarnings("unused")
+    private boolean shouldAffectPlayer(Player player) {
+        return !isPlayerSafe(player);
+    }
+
+    private void startToxicFogTask() {
+        // Cancel existing task if any
+        if (toxicFogTask != null) {
+            toxicFogTask.cancel();
+        }
+        
+        // Start toxic fog task
+        toxicFogTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    // Verificar si el jugador está en agua o bajo techo
+                    if (!isPlayerSafe(player)) {
+                        // Aplicar los efectos
+                        player.addPotionEffects(getPotionEffects());
+                        
+                        affectedPlayers.add(player.getUniqueId());
+                    } else {
+                        // Remover los efectos si el jugador está en un entorno seguro
+                        player.removePotionEffect(PotionEffectType.POISON);
+                        player.removePotionEffect(PotionEffectType.DARKNESS);
+
+                        affectedPlayers.remove(player.getUniqueId());
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Verificar cada 1 segundo (20 ticks)
     }
 }

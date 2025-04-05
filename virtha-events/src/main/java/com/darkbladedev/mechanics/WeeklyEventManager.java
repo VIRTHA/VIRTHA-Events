@@ -34,6 +34,9 @@ public class WeeklyEventManager {
     private EventType currentEventType;
     private Object currentEvent;
     private boolean isEventActive = false;
+    private boolean isPaused = false;
+    private long pauseStartTime = 0;
+    private long totalPausedTime = 0;
     
     public WeeklyEventManager(Plugin plugin) {
         this.plugin = plugin;
@@ -171,6 +174,8 @@ public class WeeklyEventManager {
             case "toxic_fog": return "Niebla Tóxica";
             case "undead_week": return "Semana de No-Muertos";
             case "paranoia_effect": return "Paranoia";
+            case "explosive_week": return "Semana Explosiva";
+            case "blood_and_iron_week": return "Semana de Sangre y Hierro";
             default: return eventType.getEventName();
         }
     }
@@ -179,6 +184,13 @@ public class WeeklyEventManager {
         // Cancelar tarea anterior si existe
         if (weeklyTask != null) {
             weeklyTask.cancel();
+        }
+        
+        // Adjust delay if the event is paused
+        long adjustedDelay = delay;
+        if (isPaused) {
+            // If paused, we need to account for the time already paused
+            adjustedDelay += System.currentTimeMillis() - pauseStartTime;
         }
         
         // Programar el próximo evento
@@ -191,7 +203,7 @@ public class WeeklyEventManager {
                 // Iniciar nuevo evento aleatorio
                 startRandomEvent();
             }
-        }.runTaskLater(plugin, TimeUnit.MILLISECONDS.toSeconds(delay) * 20); // Convertir a ticks
+        }.runTaskLater(plugin, TimeUnit.MILLISECONDS.toSeconds(adjustedDelay) * 20); // Convertir a ticks
     }
     
     public void stopCurrentEvent() {
@@ -230,6 +242,9 @@ public class WeeklyEventManager {
         data.put("eventType", currentEventType.getEventName());
         data.put("startTime", eventStartTime);
         data.put("endTime", eventEndTime);
+        data.put("isPaused", isPaused);
+        data.put("pauseStartTime", pauseStartTime);
+        data.put("totalPausedTime", totalPausedTime);
         
         try (FileWriter writer = new FileWriter(dataFile)) {
             writer.write(data.toJSONString());
@@ -251,6 +266,19 @@ public class WeeklyEventManager {
             String eventTypeName = (String) data.get("eventType");
             eventStartTime = (Long) data.get("startTime");
             eventEndTime = (Long) data.get("endTime");
+            
+            // Load pause state if available
+            if (data.containsKey("isPaused")) {
+                isPaused = (Boolean) data.get("isPaused");
+            }
+            
+            if (data.containsKey("pauseStartTime")) {
+                pauseStartTime = (Long) data.get("pauseStartTime");
+            }
+            
+            if (data.containsKey("totalPausedTime")) {
+                totalPausedTime = (Long) data.get("totalPausedTime");
+            }
             
             currentEventType = EventType.getByName(eventTypeName);
             
@@ -281,10 +309,114 @@ public class WeeklyEventManager {
         return currentEventType;
     }
     
+    public void pauseCurrentEvent() {
+        if (!isEventActive || isPaused || currentEvent == null) {
+            return;
+        }
+        
+        isPaused = true;
+        pauseStartTime = System.currentTimeMillis();
+        
+        // Pause the event based on its type
+        if (currentEvent instanceof SizeRandomizer) {
+            ((SizeRandomizer) currentEvent).pause();
+        } else if (currentEvent instanceof AcidWeek) {
+            ((AcidWeek) currentEvent).pause();
+        } else if (currentEvent instanceof ToxicFog) {
+            ((ToxicFog) currentEvent).pause();
+        } else if (currentEvent instanceof UndeadWeek) {
+            ((UndeadWeek) currentEvent).pause();
+        } else if (currentEvent instanceof ParanoiaEffect) {
+            ((ParanoiaEffect) currentEvent).pause();
+        } else if (currentEvent instanceof ExplosiveWeek) {
+            ((ExplosiveWeek) currentEvent).pause();
+        } else if (currentEvent instanceof BloodAndIronWeek) {
+            ((BloodAndIronWeek) currentEvent).pause();
+        }
+        
+        // Announce event pause
+        Bukkit.broadcastMessage(ColorText.Colorize("&6&l¡EVENTO SEMANAL PAUSADO!"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&eEl evento se reanudará cuando un administrador lo indique."));
+    }
+    
+    public void resumeCurrentEvent() {
+        if (!isEventActive || !isPaused || currentEvent == null) {
+            return;
+        }
+        
+        // Calculate how long the event was paused
+        long currentTime = System.currentTimeMillis();
+        long pauseDuration = currentTime - pauseStartTime;
+        totalPausedTime += pauseDuration;
+        
+        // Adjust the end time to account for the pause
+        eventEndTime += pauseDuration;
+        
+        isPaused = false;
+        
+        // Resume the event based on its type
+        if (currentEvent instanceof SizeRandomizer) {
+            ((SizeRandomizer) currentEvent).resume();
+        } else if (currentEvent instanceof AcidWeek) {
+            ((AcidWeek) currentEvent).resume();
+        } else if (currentEvent instanceof ToxicFog) {
+            ((ToxicFog) currentEvent).resume();
+        } else if (currentEvent instanceof UndeadWeek) {
+            ((UndeadWeek) currentEvent).resume();
+        } else if (currentEvent instanceof ParanoiaEffect) {
+            ((ParanoiaEffect) currentEvent).resume();
+        } else if (currentEvent instanceof ExplosiveWeek) {
+            ((ExplosiveWeek) currentEvent).resume();
+        } else if (currentEvent instanceof BloodAndIronWeek) {
+            ((BloodAndIronWeek) currentEvent).resume();
+        }
+        
+        // Announce event resume
+        Bukkit.broadcastMessage(ColorText.Colorize("&6&l¡EVENTO SEMANAL REANUDADO!"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&eEl evento continuará por el tiempo restante."));
+    }
+    
+    public void forceStopCurrentEvent() {
+        if (!isEventActive || currentEvent == null) {
+            return;
+        }
+        
+        // Stop the current event
+        stopCurrentEvent();
+        
+        // Cancel the next scheduled event
+        if (weeklyTask != null) {
+            weeklyTask.cancel();
+            weeklyTask = null;
+        }
+        
+        // Announce forced stop
+        Bukkit.broadcastMessage(ColorText.Colorize("&c&l¡EVENTO SEMANAL DETENIDO FORZOSAMENTE!"));
+        Bukkit.broadcastMessage(ColorText.Colorize("&eEl próximo evento semanal se programará automáticamente."));
+        
+        // Schedule a new random event to start after a delay (1 hour)
+        weeklyTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                startRandomEvent();
+            }
+        }.runTaskLater(plugin, 20 * 60 * 60); // 1 hour delay
+    }
+    
+    // Update getTimeRemaining to account for paused time
     public long getTimeRemaining() {
         if (!isEventActive) {
             return 0;
         }
+        
+        if (isPaused) {
+            return eventEndTime - pauseStartTime;
+        }
+        
         return Math.max(0, eventEndTime - System.currentTimeMillis());
+    }
+    
+    public boolean isPaused() {
+        return isPaused;
     }
 }

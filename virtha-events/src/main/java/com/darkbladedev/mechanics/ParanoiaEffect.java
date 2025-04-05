@@ -29,6 +29,7 @@ public class ParanoiaEffect {
     private BukkitTask mainTask;
     private BukkitTask soundTask;
     private final Set<UUID> affectedPlayers = new HashSet<>();
+    private boolean isPaused = false;
 
     public ParanoiaEffect(Plugin plugin, long duration, long interval) {
         this.plugin = plugin;
@@ -40,6 +41,12 @@ public class ParanoiaEffect {
         if (isActive) return;
         
         isActive = true;
+        isPaused = false;
+        
+        // Start tasks
+        startMainTask();
+        startSoundTask();
+        
         long durationTicks = (long)(duration * 20); // Convertir a ticks
         
         // Tarea principal que aplica efectos de poción y brillo
@@ -228,5 +235,111 @@ public class ParanoiaEffect {
     
     public boolean isActive() {
         return isActive;
+    }
+
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel tasks
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+        
+        if (soundTask != null) {
+            soundTask.cancel();
+            soundTask = null;
+        }
+        
+        // Temporarily remove effects
+        for (UUID uuid : affectedPlayers) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                player.setGlowing(false);
+                player.removePotionEffect(PotionEffectType.NAUSEA);
+            }
+        }
+    }
+
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart tasks
+        startMainTask();
+        startSoundTask();
+        
+        // Reapply effects
+        long durationTicks = (long)(duration * 20);
+        for (UUID uuid : affectedPlayers) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                player.setGlowing(true);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, (int)(durationTicks), 0, false, true, true));
+            }
+        }
+    }
+
+    private void startMainTask() {
+        // Cancel existing task if any
+        if (mainTask != null) {
+            mainTask.cancel();
+        }
+        
+        long durationTicks = (long)(duration * 20);
+        
+        // Start the main task
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!affectedPlayers.contains(player.getUniqueId())) {
+                        // Apply effects to new players
+                        player.setGlowing(true);
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, (int)(durationTicks), 0, false, true, true));
+                        affectedPlayers.add(player.getUniqueId());
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 40L); // Check every 2 seconds
+    }
+
+    private void startSoundTask() {
+        // Cancel existing task if any
+        if (soundTask != null) {
+            soundTask.cancel();
+        }
+        
+        // Start the sound task
+        soundTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                List<Sound> sounds = generateSoundList();
+                
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    // Play random sounds at random positions around the player
+                    if (random.nextInt(100) < 70) { // 70% chance of sound
+                        Sound randomSound = sounds.get(random.nextInt(sounds.size()));
+                        
+                        // Create random location around player
+                        Location playerLoc = player.getLocation();
+                        Location soundLoc = playerLoc.clone().add(
+                            (random.nextDouble() - 0.5) * 10, // X: ±5 blocks
+                            (random.nextDouble() - 0.5) * 6,  // Y: ±3 blocks
+                            (random.nextDouble() - 0.5) * 10  // Z: ±5 blocks
+                        );
+                        
+                        // Random volume and pitch for better effect
+                        float volume = 0.5f + random.nextFloat() * 0.5f;
+                        float pitch = 0.8f + random.nextFloat() * 0.4f;
+                        
+                        player.playSound(soundLoc, randomSound, volume, pitch);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L * interval); // Play sounds at the specified interval
     }
 }

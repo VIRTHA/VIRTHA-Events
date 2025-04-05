@@ -35,7 +35,9 @@ public class BloodAndIronWeek implements Listener {
     private final Plugin plugin;
     private final long duration;
     private boolean isActive = false;
+    private boolean isPaused = false;
     private BukkitTask mainTask;
+    private BukkitTask checkKillsTask;
     private BukkitTask endTask;
     
     // Player tracking maps
@@ -62,6 +64,11 @@ public class BloodAndIronWeek implements Listener {
         if (isActive) return;
         
         isActive = true;
+        isPaused = false;
+
+        startMainTask();
+        startCheckKillsTask();
+            
         
         // Register events
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -108,6 +115,11 @@ public class BloodAndIronWeek implements Listener {
             mainTask = null;
         }
         
+        if (checkKillsTask != null) {
+            checkKillsTask.cancel();
+            checkKillsTask = null;
+        }
+        
         if (endTask != null) {
             endTask.cancel();
             endTask = null;
@@ -131,10 +143,109 @@ public class BloodAndIronWeek implements Listener {
         survivedPlayers.clear();
         deadPlayers.clear();
         awardedAdrenaline.clear();
+
+        // Unregister events
+        PlayerDeathEvent.getHandlerList().unregister(this);
+        EntityDeathEvent.getHandlerList().unregister(this);
+        PlayerJoinEvent.getHandlerList().unregister(this);
+        PlayerQuitEvent.getHandlerList().unregister(this);
+        PlayerItemHeldEvent.getHandlerList().unregister(this);
         
         // Announce the end of the event
         Bukkit.broadcastMessage(ColorText.Colorize("&4[&cSemana de Sangre y Hierro&4] &cEl coliseo del caos ha cerrado sus puertas... por ahora."));
     }
+
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel tasks
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+        
+        if (checkKillsTask != null) {
+            checkKillsTask.cancel();
+            checkKillsTask = null;
+        }
+        
+        // Remove temporary effects
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            removeArmorEffects(player);
+        }
+    }
+    
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart tasks
+        startMainTask();
+        startCheckKillsTask();
+        
+        // Reapply effects
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            checkAndApplyArmorEffects(player);
+        }
+    }
+    
+    private void startMainTask() {
+        // Cancel existing task if any
+        if (mainTask != null) {
+            mainTask.cancel();
+        }
+        
+        // Start the main task
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    // Check and apply armor effects
+                    checkAndApplyArmorEffects(player);
+                    
+                    // Check if player is holding diamond/netherite sword
+                    checkAndApplySwordEffects(player);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L * 5); // Check every 5 seconds
+    }
+    
+    private void startCheckKillsTask() {
+        // Cancel existing task if any
+        if (checkKillsTask != null) {
+            checkKillsTask.cancel();
+        }
+        
+        // Start the check kills task
+        checkKillsTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                long currentTime = System.currentTimeMillis();
+                
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    UUID playerId = player.getUniqueId();
+                    
+                    // Check mob kills
+                    Long lastMobKillTime = lastHostileMobKillTime.get(playerId);
+                    if (lastMobKillTime == null || (currentTime - lastMobKillTime) > 10 * 60 * 1000) {
+                        // No mob kill in 10 minutes
+                        reducePlayerHealth(player, 4); // 2 hearts
+                    }
+                    
+                    // Check player kills
+                    Long LastPlayerKillTime = lastPlayerKillTime.get(playerId);
+                    if (lastPlayerKillTime == null || (currentTime - LastPlayerKillTime) > 60 * 60 * 1000) {
+                        // No player kill in 1 hour
+                        reducePlayerHealth(player, 10); // 5 hearts
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 20L * 60, 20L * 60); // Check every minute
+    }
+    
     
     private void initializePlayer(Player player) {
         UUID playerId = player.getUniqueId();
@@ -221,6 +332,23 @@ public class BloodAndIronWeek implements Listener {
                 // Reset the timer
                 lastPlayerKillTime.put(playerId, currentTime);
             }
+        }
+    }
+
+        /**
+     * Reduces a player's maximum health by the specified amount
+     * @param player The player whose health to reduce
+     * @param amount The amount to reduce (in health points, 2 = 1 heart)
+     */
+    private void reducePlayerHealth(Player player, double amount) {
+        double currentMaxHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+        double newMaxHealth = Math.max(2.0, currentMaxHealth - amount); // Minimum 1 heart
+        
+        player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(newMaxHealth);
+        
+        // Ensure current health doesn't exceed max health
+        if (player.getHealth() > newMaxHealth) {
+            player.setHealth(newMaxHealth);
         }
     }
     
@@ -477,4 +605,41 @@ public class BloodAndIronWeek implements Listener {
         // Announce to server
         Bukkit.broadcastMessage(ColorText.Colorize("&6" + player.getName() + " &eha completado el desafío: &7Sobrevivir todo el evento sin morir con más de 10 kills"));
     }
+
+    // Helper methods
+    private void checkAndApplyArmorEffects(Player player) {
+        // Check if player is wearing diamond/netherite armor
+        boolean hasHeavyArmor = false;
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            if (item != null) {
+                Material type = item.getType();
+                if (type.name().contains("DIAMOND") || type.name().contains("NETHERITE")) {
+                    hasHeavyArmor = true;
+                    break;
+                }
+            }
+        }
+        
+        if (hasHeavyArmor) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 20 * 10, 1, false, false, true));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20 * 10, 1, false, false, true));
+        }
+    }
+
+    private void removeArmorEffects(Player player) {
+        player.removePotionEffect(PotionEffectType.MINING_FATIGUE);
+        player.removePotionEffect(PotionEffectType.SLOWNESS);
+    }
+
+    private void checkAndApplySwordEffects(Player player) {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item != null) {
+            Material type = item.getType();
+            if (type == Material.DIAMOND_SWORD || type == Material.NETHERITE_SWORD) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 20 * 10, 0, false, false, true));
+            }
+        }
+    }
+
+    
 }

@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import com.darkbladedev.VirthaEventsMain;
 import com.darkbladedev.utils.ColorText;
 
 public class VirthaEventsMainCommand implements CommandExecutor{
@@ -29,8 +30,10 @@ public class VirthaEventsMainCommand implements CommandExecutor{
                 return new CreateEventCommand(plugin).onCommand(sender, command, label, args);
             case "health":
                 return new HealthCommand().onCommand(sender, command, label, args);
+            case "event_control":
+                return new EventControlCommand((VirthaEventsMain) plugin).onCommand(sender, command, label, args);
             default:
-                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents < run_event | enchant >"));
+                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents <run_event|health|event_control>"));
                 return false;
         
         }

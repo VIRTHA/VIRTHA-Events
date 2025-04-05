@@ -58,33 +58,6 @@ public class UndeadWeek implements Listener {
         this.duration = duration;
     }
     
-    public void start() {
-        if (isActive) return;
-        
-        isActive = true;
-        
-        // Anunciar el inicio del evento
-        Bukkit.broadcastMessage(ColorText.Colorize("&4[&cSemana de los No Muertos&4] &cLas hordas de no-muertos dominan el mundo..."));
-        
-        // Tarea principal que se ejecuta cada tick para verificar condiciones
-        mainTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                checkTime();
-                checkInfectedPlayers();
-                checkNetheriteArmor();
-            }
-        }.runTaskTimer(plugin, 0L, 20L); // Cada segundo
-        
-        // Programar el fin del evento
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                stop();
-            }
-        }.runTaskLater(plugin, duration * 20L);
-    }
-    
     public void stop() {
         if (!isActive) return;
         
@@ -367,5 +340,112 @@ public class UndeadWeek implements Listener {
     
     public boolean isRedMoonActive() {
         return isRedMoonActive;
+    }
+
+    private boolean isPaused = false;
+
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel the main task
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+        
+        // Temporarily restore normal day/night cycle
+        isRedMoonActive = false;
+        for (World world : Bukkit.getWorlds()) {
+            if (world.getEnvironment() == World.Environment.NORMAL) {
+                world.setTime(0); // Day
+            }
+        }
+        
+        // Temporarily remove effects from infected players
+        for (UUID playerId : infectedPlayers.keySet()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null && player.isOnline()) {
+                player.removePotionEffect(PotionEffectType.POISON);
+            }
+        }
+    }
+
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart the main task
+        startMainTask();
+        
+        // Reapply effects to infected players
+        for (UUID playerId : infectedPlayers.keySet()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null && player.isOnline()) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 20 * 60, 0, false, true, true));
+            }
+        }
+    }
+
+    private void startMainTask() {
+        // Cancel existing task if any
+        if (mainTask != null) {
+            mainTask.cancel();
+        }
+        
+        // Start the main task
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Toggle red moon every night
+                long time = Bukkit.getWorlds().get(0).getTime();
+                if (time >= 13000 && time <= 23000) { // Night time
+                    if (!isRedMoonActive) {
+                        activateRedMoon();
+                    }
+                } else {
+                    if (isRedMoonActive) {
+                        deactivateRedMoon();
+                    }
+                }
+                
+                // Check infected players
+                checkInfectedPlayers();
+            }
+        }.runTaskTimer(plugin, 0L, 20L * 30); // Check every 30 seconds
+    }
+
+    // Update start method to use the new task method
+    public void start() {
+        if (isActive) return;
+        
+        isActive = true;
+        isPaused = false;
+        
+        // Start the main task
+        startMainTask();
+        
+        // Anunciar el inicio del evento
+        Bukkit.broadcastMessage(ColorText.Colorize("&4[&cSemana de los No Muertos&4] &cLas hordas de no-muertos dominan el mundo..."));
+        
+        // Tarea principal que se ejecuta cada tick para verificar condiciones
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                checkTime();
+                checkInfectedPlayers();
+                checkNetheriteArmor();
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Cada segundo
+        
+        // Programar el fin del evento
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                stop();
+            }
+        }.runTaskLater(plugin, duration * 20L);
     }
 }

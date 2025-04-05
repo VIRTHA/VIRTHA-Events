@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 public class SizeRandomizer implements Listener {
 
@@ -24,6 +25,9 @@ public class SizeRandomizer implements Listener {
     private BukkitRunnable endTask;
     private boolean isActive = false;
     private final Map<UUID, Double> playerSizes = new HashMap<>();
+    private BukkitTask mainTask;
+    private boolean isPaused = false;
+    private final List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
     
     public SizeRandomizer(Plugin plugin, float duration, float min, float max) {
         this.plugin = plugin;
@@ -34,28 +38,6 @@ public class SizeRandomizer implements Listener {
 
     public static float getRandomSize(float min, float max) {
         return (float) (Math.random() * (max - min) + min);
-    }
-
-    public void start() {
-        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-        float durationTicks = duration * 20; // Convert seconds to ticks
-        
-        isActive = true;
-        
-        // Register events to handle new players joining during the event
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-        
-        // Randomize sizes once at the start
-        randomizePlayerSizes(players);
-        
-        // Schedule the task to end the event after the specified duration
-        endTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                stop();
-            }
-        };
-        endTask.runTaskLater(plugin, (long) durationTicks);
     }
     
     public void stop() {
@@ -104,5 +86,74 @@ public class SizeRandomizer implements Listener {
             playerSizes.put(player.getUniqueId(), (double) size);
             player.getAttribute(Attribute.SCALE).setBaseValue(size);
         }
+    }
+
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel the main task if it's running
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+    }
+
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart the main task
+        startMainTask();
+    }
+
+    private void startMainTask() {
+        // Cancel existing task if any
+        if (mainTask != null) {
+            mainTask.cancel();
+        }
+        
+        // Start the main task that applies size changes
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!playerSizes.containsKey(player.getUniqueId())) {
+                        // New player, assign a random size
+                        float size = getRandomSize(min, max);
+                        playerSizes.put(player.getUniqueId(), (double) size);
+                        randomizePlayerSizes(players);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Check every second
+    }
+    
+    // Update start method to use the new startMainTask method
+    public void start() {
+        if (isActive) return;
+        
+        isActive = true;
+        isPaused = false;
+        
+        // Start the main task
+        startMainTask();
+        
+        // Register events to handle new players joining during the event
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        
+        // Randomize sizes once at the start
+        randomizePlayerSizes(players);
+        
+        // Schedule the task to end the event after the specified duration
+        endTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                stop();
+            }
+        };
+        endTask.runTaskLater(plugin, (long) duration * 20);
     }
 }

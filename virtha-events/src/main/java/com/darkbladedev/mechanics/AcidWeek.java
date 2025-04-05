@@ -23,6 +23,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.darkbladedev.utils.ColorText;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -35,8 +37,9 @@ public class AcidWeek implements Listener {
     private BukkitTask acidTask;
     private BukkitTask weatherTask;
     private boolean isActive = false;
-    private final long duration;
-    
+    private boolean isPaused = false;
+    private long duration;
+
     public AcidWeek(Plugin plugin, long duration) {
         this.plugin = plugin;
         this.duration = duration;
@@ -46,23 +49,30 @@ public class AcidWeek implements Listener {
         if (isActive) return;
         
         isActive = true;
-        long durationTicks = duration * 20; // Convertir segundos a ticks
+        isPaused = false;
         
-        // Iniciar la tarea principal de daño por ácido
+        // Register events
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        
+        // Start acid damage task
         startAcidDamageTask();
         
-        // Iniciar la tarea de control del clima
+        // Start weather control task
         startWeatherControlTask();
         
+        // Announce the start of the event
+        Bukkit.broadcastMessage(ColorText.Colorize("&2[&aSemana Ácida&2] &a¡La lluvia ácida ha comenzado! Busca refugio y protege tu equipo."));
         
-        // Programar el fin del evento
+        // Schedule the end of the event
         new BukkitRunnable() {
             @Override
             public void run() {
                 stop();
             }
-        }.runTaskLater(plugin, durationTicks);
+        }.runTaskLater(plugin, duration);
     }
+    
+
     
     public void stop() {
         if (!isActive) return;
@@ -109,12 +119,7 @@ public class AcidWeek implements Listener {
                 for (UUID uuid : playersInWater) {
                     Player player = Bukkit.getPlayer(uuid);
                     if (player != null && player.isOnline()) {
-                        // Verificar si el jugador tiene el encantamiento de resistencia al ácido
-                        if (!hasAcidResistance(player)) {
-                            // 2 puntos = 1 corazón
-                            player.damage(2.0); // Ignora armadura al usar damage() directamente
-                            player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 0, false, true, true));
-                        }
+                        applyAcidDamage(player, 2.0);
                     }
                 }
                 
@@ -123,11 +128,7 @@ public class AcidWeek implements Listener {
                     for (UUID uuid : playersInRain) {
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) {
-                            // Verificar si el jugador tiene el encantamiento de resistencia al ácido
-                            if (!hasAcidResistance(player)) {
-                                player.damage(2.0); // 1 corazón
-                                player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 0, false, true, true));
-                            }
+                            applyAcidDamage(player, 2.0);
                         }
                     }
                 }
@@ -288,5 +289,64 @@ public class AcidWeek implements Listener {
     
     public boolean isActive() {
         return isActive;
+    }
+    
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel tasks
+        if (acidTask != null) {
+            acidTask.cancel();
+            acidTask = null;
+        }
+        
+        if (weatherTask != null) {
+            weatherTask.cancel();
+            weatherTask = null;
+        }
+        
+        // Temporarily restore normal weather
+        for (World world : Bukkit.getWorlds()) {
+            world.setStorm(false);
+            world.setThundering(false);
+        }
+    }
+    
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart tasks
+        startAcidDamageTask();
+        startWeatherControlTask();
+    }
+    
+    // Missing method implementation
+    @SuppressWarnings("unused")
+    private boolean isExposedToRain(Player player, World world) {
+        if (!world.hasStorm()) {
+            return false;
+        }
+        
+        Location loc = player.getLocation();
+        
+        // Check if player is exposed to the sky
+        if (world.getHighestBlockYAt(loc) <= loc.getBlockY() && !isPlayerUnderRoof(player)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Missing method implementation
+    private void applyAcidDamage(Player player, double damage) {
+        // Check if player has acid resistance
+        if (!hasAcidResistance(player)) {
+            player.damage(damage);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 0, false, true, true));
+        }
     }
 }

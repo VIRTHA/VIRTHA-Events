@@ -21,7 +21,8 @@ public class CommandTabcompleter implements TabCompleter {
                 completions.addAll(
                     Arrays.asList(
                         "run_event",
-                            "health"
+                        "health",
+                        "event_control"
                     )
                 );
             } else if (args[0].equalsIgnoreCase("run_event")) {
@@ -100,6 +101,17 @@ public class CommandTabcompleter implements TabCompleter {
                     completions.add("amount"); 
                 } else if (args.length == 4) {
                     sender.getServer().getOnlinePlayers().forEach(player -> completions.add(player.getName())); 
+                }
+            } else if (args[0].equalsIgnoreCase("event_control")) {
+                if (args.length == 2) {
+                    // Segundo argumento: acciones de control
+                    completions.addAll(
+                        Arrays.asList(
+                            "pause",
+                            "resume",
+                            "stop"
+                        )
+                    );
                 }
             }
         }

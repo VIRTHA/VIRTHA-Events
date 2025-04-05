@@ -76,6 +76,9 @@ public class ExplosiveWeek implements Listener {
     // EternalTags API for tag rewards
     private final EternalAPI eternalAPI = EternalAPI.getInstance();
     
+    private boolean isPaused = false;
+    private BukkitTask mainTask;
+    
     public ExplosiveWeek(Plugin plugin, long duration) {
         this.plugin = plugin;
         this.duration = duration;
@@ -84,9 +87,13 @@ public class ExplosiveWeek implements Listener {
     public void start() {
         if (isActive) return;
         
-        isActive = true;
         long durationTicks = duration * 20; // Convert to ticks
-        
+
+        isActive = true;
+        isPaused = false;
+    
+        startMainTask();
+    
         // Register events
         Bukkit.getPluginManager().registerEvents(this, plugin);
         
@@ -539,5 +546,44 @@ public class ExplosiveWeek implements Listener {
     
     public boolean isActive() {
         return isActive;
+    }
+
+    public void pause() {
+        if (!isActive || isPaused) return;
+        
+        isPaused = true;
+        
+        // Cancel the main task
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+    }
+
+    public void resume() {
+        if (!isActive || !isPaused) return;
+        
+        isPaused = false;
+        
+        // Restart the main task
+        startMainTask();
+    }
+
+    private void startMainTask() {
+        // Cancel existing task if any
+        if (mainTask != null) {
+            mainTask.cancel();
+        }
+        
+        // Start the main task
+        mainTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Check for players with explosive effects
+                for (@SuppressWarnings("unused") Player player : Bukkit.getOnlinePlayers()) {
+                    // Apply any ongoing effects or checks here
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L * 5); // Check every 5 seconds
     }
 }

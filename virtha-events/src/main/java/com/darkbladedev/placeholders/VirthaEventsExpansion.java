@@ -50,6 +50,10 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
             return eventManager.isEventActive() ? "Sí" : "No";
         }
         
+        if (identifier.equals("event_paused")) {
+            return eventManager.isPaused() ? "Sí" : "No";
+        }
+
         if (identifier.equals("event_name")) {
             if (!eventManager.isEventActive() || eventManager.getCurrentEventType() == null) {
                 return "Ninguno";
