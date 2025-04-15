@@ -57,7 +57,7 @@ public class CreateEventCommand implements CommandExecutor {
                     return false;
                 }
                 
-                float minSize = 0.5f;
+                float minSize = 0.1f;
                 float maxSize = 2.0f;
                 
                 if (args.length >= 4) {

@@ -80,7 +80,7 @@ public class WeeklyEventManager {
         List<EventType> availableEvents = new ArrayList<>();
         for (EventType type : EventType.values()) {
             // Filtrar eventos que no son adecuados para ser semanales
-            if (!type.getEventName().equals("mob_rain")) { // Excluir eventos instantáneos
+            if (!type.getEventName().equals("mob_rain") || !type.getEventName().equals("size_randomizer") || !type.getEventName().equals("paranoia_effect")) { // Excluir eventos instantáneos
                 availableEvents.add(type);
             }
         }
@@ -109,12 +109,6 @@ public class WeeklyEventManager {
         
         // Iniciar el evento según su tipo
         switch (eventType.getEventName()) {
-            case "size_randomizer":
-                SizeRandomizer sizeRandomizer = new SizeRandomizer(plugin, durationTicks, 0.5f, 2.0f);
-                sizeRandomizer.start();
-                currentEvent = sizeRandomizer;
-                break;
-                
             case "acid_week":
                 AcidWeek acidWeek = new AcidWeek(plugin, durationTicks);
                 acidWeek.start();
@@ -132,13 +126,6 @@ public class WeeklyEventManager {
                 undeadWeek.start();
                 currentEvent = undeadWeek;
                 break;
-                
-            case "paranoia_effect":
-                ParanoiaEffect paranoiaEffect = new ParanoiaEffect(plugin, durationTicks, 5);
-                paranoiaEffect.start();
-                currentEvent = paranoiaEffect;
-                break;
-                
             case "explosive_week":
                 ExplosiveWeek explosiveWeek = new ExplosiveWeek(plugin, durationTicks);
                 explosiveWeek.start();
@@ -418,5 +405,13 @@ public class WeeklyEventManager {
     
     public boolean isPaused() {
         return isPaused;
+    }
+    
+    /**
+     * Gets the current event object
+     * @return The current event object, or null if no event is active
+     */
+    public Object getCurrentEvent() {
+        return currentEvent;
     }
 }

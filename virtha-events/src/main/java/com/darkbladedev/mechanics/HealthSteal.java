@@ -96,7 +96,6 @@ public class HealthSteal implements Listener {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public void PenalizePlayer(Player player) {
         // Obtener el contador de baneos para este jugador
         UUID playerUUID = player.getUniqueId();
@@ -121,10 +120,10 @@ public class HealthSteal implements Listener {
             Bukkit.getBannedPlayers().add((OfflinePlayer) player);
 
             Bukkit.getBanList(BanList.Type.IP).addBan(
-                player.getName(),
+                player.getAddress().getAddress().getHostAddress(),
                 BAN_REASON,
                 expirationDate,
-                "Sistema de HealthSteal"
+                "VIRTHA System..."
             );
 
             // Expulsar al jugador

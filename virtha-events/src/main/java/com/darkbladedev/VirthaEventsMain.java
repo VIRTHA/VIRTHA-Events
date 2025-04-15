@@ -7,9 +7,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.darkbladedev.commands.VirthaEventsMainCommand;
 import com.darkbladedev.enchants.AcidResistance;
 import com.darkbladedev.mechanics.HealthSteal;
-import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.mechanics.WeeklyEventManager;
 import com.darkbladedev.placeholders.VirthaEventsExpansion;
+import com.darkbladedev.storage.StorageManager;
 import com.darkbladedev.tabcompleter.CommandTabcompleter;
 import com.darkbladedev.utils.ColorText;
 
@@ -19,6 +19,8 @@ public class VirthaEventsMain extends JavaPlugin{
     public static AcidResistance acidResistance;
     private WeeklyEventManager weeklyEventManager;
     private VirthaEventsExpansion placeholderExpansion;
+    @SuppressWarnings("unused")
+    private StorageManager storageManager;
 
     @Override
     public void onEnable() {
@@ -27,9 +29,12 @@ public class VirthaEventsMain extends JavaPlugin{
         registerCommands();
         registerEvents();
         
+        
         // Inicializar y arrancar el sistema de eventos semanales
         weeklyEventManager = new WeeklyEventManager(this);
         weeklyEventManager.initialize();
+
+        storageManager = new StorageManager(this.getDataFolder());
         
         // Registrar la expansión de PlaceholderAPI si está disponible
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -71,7 +76,6 @@ public class VirthaEventsMain extends JavaPlugin{
 
         try {
             pluginManager.registerEvents(new HealthSteal(), this);
-            pluginManager.registerEvents(new UndeadWeek(this, 0), this); // Registrar el listener
             
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Events registered! 📝"));
         } catch (Exception e) {

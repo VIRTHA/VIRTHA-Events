@@ -586,4 +586,30 @@ public class ExplosiveWeek implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L * 5); // Check every 5 seconds
     }
+
+    /**
+     * Checks if a player has completed a specific challenge
+     * @param playerId The UUID of the player
+     * @param challengeId The ID of the challenge
+     * @return true if the challenge is completed, false otherwise
+     */
+    public boolean hasChallengeCompleted(UUID playerId, String challengeId) {
+        switch (challengeId) {
+            case "ghast_killer":
+                // Player has killed a ghast
+                return ghastKillers.contains(playerId);
+            case "mob_head_collector":
+                // Player has collected all classic hostile mob heads
+                Set<EntityType> collectedHeads = mobHeadCollectors.getOrDefault(playerId, new HashSet<>());
+                return collectedHeads.containsAll(classicHostileMobs);
+            case "explosion_killer":
+                // Player has killed another player with an explosion
+                return playerExplosionKillers.contains(playerId);
+            case "warden_creeper_killer":
+                // Player has killed a warden with a creeper
+                return wardenCreeperKillers.contains(playerId);
+            default:
+                return false;
+        }
+    }
 }

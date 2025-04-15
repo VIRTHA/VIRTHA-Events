@@ -641,5 +641,24 @@ public class BloodAndIronWeek implements Listener {
         }
     }
 
-    
+    /**
+     * Checks if a player has completed a specific challenge
+     * @param playerId The UUID of the player
+     * @param challengeId The ID of the challenge
+     * @return true if the challenge is completed, false otherwise
+     */
+    public boolean hasChallengeCompleted(UUID playerId, String challengeId) {
+        switch (challengeId) {
+            case "adrenaline":
+                return awardedAdrenaline.contains(playerId);
+            case "pentakill":
+                return pentakillPlayers.contains(playerId);
+            case "instant_damage":
+                return instantDamageKillers.contains(playerId);
+            case "survival":
+                return !deadPlayers.contains(playerId) && playerKillCount.getOrDefault(playerId, 0) >= 10;
+            default:
+                return false;
+        }
+    }
 }

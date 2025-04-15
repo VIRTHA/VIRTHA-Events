@@ -40,14 +40,14 @@ public class CommandTabcompleter implements TabCompleter {
                             "blood_and_iron_week"
                         )
                     );
-                } else if (args.length == 3) {
+                } else if (args.length == 3 && args[1].equalsIgnoreCase("mob_rain")) {
                     // Tercer argumento: duración para todos los eventos
                     completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
                 } else if (args.length >= 4) {
                     // Argumentos adicionales específicos para cada tipo de evento
                     switch (args[1].toLowerCase()) {
                         case "mob_rain":
-                            if (args.length == 4) {
+                            if (args.length == 3) {
                                 completions.add("entity-count");
                             }
                             break;

@@ -23,6 +23,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.darkbladedev.VirthaEventsMain;
 import com.darkbladedev.utils.ColorText;
 
 import java.util.HashSet;
@@ -158,7 +159,7 @@ public class AcidWeek implements Listener {
                 // Actualizar jugadores en lluvia
                 updatePlayersInRain();
             }
-        }.runTaskTimer(plugin, 0L, 100L); // Verificar cada 5 segundos
+        }.runTaskTimer(plugin, 0L, 20L); // Verificar cada 1 segundos
     }
     
     private void updatePlayersInRain() {
@@ -322,6 +323,46 @@ public class AcidWeek implements Listener {
         // Restart tasks
         startAcidDamageTask();
         startWeatherControlTask();
+    }
+    
+    /**
+     * Checks if a player has completed a specific challenge
+     * @param playerId The UUID of the player
+     * @param challengeId The ID of the challenge
+     * @return true if the challenge is completed, false otherwise
+     */
+    public boolean hasChallengeCompleted(UUID playerId, String challengeId) {
+        switch (challengeId) {
+            case "acid_swimmer":
+                // Player has survived in acid water for a certain amount of time
+                return playersInWater.contains(playerId);
+            case "acid_rain_survivor":
+                // Player has survived in acid rain for a certain amount of time
+                return playersInRain.contains(playerId);
+            case "acid_resistant":
+                // Player has crafted or obtained acid resistant gear
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    return hasAcidResistanceGear(player);
+                }
+                return false;
+            default:
+                return false;
+        }
+    }
+    
+    /**
+     * Checks if a player has acid resistance gear
+     * @param player The player to check
+     * @return true if the player has acid resistance gear, false otherwise
+     */
+    private boolean hasAcidResistanceGear(Player player) {
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            if (item != null && item.hasItemMeta() && item.getItemMeta().hasEnchant(VirthaEventsMain.acidResistance)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     // Missing method implementation

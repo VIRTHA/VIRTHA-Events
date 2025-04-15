@@ -2,9 +2,14 @@ package com.darkbladedev.placeholders;
 
 import java.util.concurrent.TimeUnit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.darkbladedev.VirthaEventsMain;
+import com.darkbladedev.mechanics.AcidWeek;
+import com.darkbladedev.mechanics.BloodAndIronWeek;
+import com.darkbladedev.mechanics.ExplosiveWeek;
+import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.mechanics.WeeklyEventManager;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -38,10 +43,56 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
     }
 
     @Override
+    public boolean canRegister() {
+        return true;
+    }
+
+    /**
+     * We want the placeholders to update frequently to reflect event changes
+     */
+    public long getLastUpdate() {
+        // Return current time in milliseconds to prevent caching
+        return System.currentTimeMillis();
+    }
+
+    /**
+     * Refreshes all placeholder values to ensure they reflect current event state
+     * This can be called when events change or when manual refresh is needed
+     */
+    public void refreshPlaceholders() {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            try {                
+                // Force update for all online players
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    // Get all virtha placeholders and re-process them
+                    String[] placeholders = {
+                        "%virtha_event_active%",
+                        "%virtha_event_paused%",
+                        "%virtha_event_name%",
+                        "%virtha_event_time_remaining%",
+                        "%virtha_event_time_remaining_short%",
+                        "%virtha_event_progress_percent%"
+                    };
+                    
+                    // Process each placeholder to force refresh
+                    me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, String.join(" ", placeholders));
+                }
+                
+                // Log the refresh for debugging purposes
+                plugin.getLogger().info("VirthaEvents placeholders have been refreshed");
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to refresh placeholders: " + e.getMessage());
+            }
+        }
+    }
+
+    @Override
     public String onPlaceholderRequest(Player player, String identifier) {
         if (player == null) {
             return "";
         }
+
+        refreshPlaceholders();
 
         WeeklyEventManager eventManager = plugin.getWeeklyEventManager();
         
@@ -102,6 +153,18 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
             String specificIdentifier = identifier.substring("event_specific_".length());
             
             return getEventSpecificPlaceholder(player, eventName, specificIdentifier);
+        }
+        
+        // Challenge completion placeholders
+        if (identifier.startsWith("challenge_completed_")) {
+            if (!eventManager.isEventActive() || eventManager.getCurrentEventType() == null) {
+                return "false";
+            }
+            
+            String eventName = eventManager.getCurrentEventType().getEventName();
+            String challengeId = identifier.substring("challenge_completed_".length());
+            
+            return isChallengeCompleted(player, eventName, challengeId) ? "true" : "false";
         }
         
         return null; // Placeholder not found
@@ -234,5 +297,50 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
             return "N/A";
         }
         return "N/A";
+    }
+
+    /**
+     * Checks if a player has completed a specific challenge in the current event
+     * @param player The player to check
+     * @param eventName The name of the event
+     * @param challengeId The ID of the challenge
+     * @return true if the challenge is completed, false otherwise
+     */
+    private boolean isChallengeCompleted(Player player, String eventName, String challengeId) {
+        Object currentEvent = plugin.getWeeklyEventManager().getCurrentEvent();
+        
+        switch (eventName) {
+            case "blood_and_iron_week":
+                if (currentEvent instanceof BloodAndIronWeek) {
+                    BloodAndIronWeek bloodAndIronWeek = (BloodAndIronWeek) currentEvent;
+                    return bloodAndIronWeek.hasChallengeCompleted(player.getUniqueId(), challengeId);
+                }
+                break;
+                
+            case "explosive_week":
+                if (currentEvent instanceof ExplosiveWeek) {
+                    ExplosiveWeek explosiveWeek = (ExplosiveWeek) currentEvent;
+                    return explosiveWeek.hasChallengeCompleted(player.getUniqueId(), challengeId);
+                }
+                break;
+                
+            case "undead_week":
+                if (currentEvent instanceof UndeadWeek) {
+                    UndeadWeek undeadWeek = (UndeadWeek) currentEvent;
+                    return undeadWeek.hasChallengeCompleted(player.getUniqueId(), challengeId);
+                }
+                break;
+                
+            case "acid_week":
+                if (currentEvent instanceof AcidWeek) {
+                    AcidWeek acidWeek = (AcidWeek) currentEvent;
+                    return acidWeek.hasChallengeCompleted(player.getUniqueId(), challengeId);
+                }
+                break;
+                
+            // Add other events as needed
+        }
+        
+        return false;
     }
 }

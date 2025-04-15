@@ -448,4 +448,29 @@ public class UndeadWeek implements Listener {
             }
         }.runTaskLater(plugin, duration * 20L);
     }
+
+    /**
+     * Checks if a player has completed a specific challenge
+     * @param playerId The UUID of the player
+     * @param challengeId The ID of the challenge
+     * @return true if the challenge is completed, false otherwise
+     */
+    public boolean hasChallengeCompleted(UUID playerId, String challengeId) {
+        switch (challengeId) {
+            case "cure_infection":
+                // Player has cured their infection
+                return curedInfectionsCount.getOrDefault(playerId, 0) > 0;
+            case "cure_villager":
+                // Player has cured a zombie villager
+                return curedVillagers.contains(playerId);
+            case "red_moon_kills":
+                // Player has killed a certain number of mobs during red moon
+                return redMoonKillsCount.getOrDefault(playerId, 0) >= 10;
+            case "wither_red_moon":
+                // Player has killed a wither during red moon
+                return witherKilledInRedMoon.contains(playerId);
+            default:
+                return false;
+        }
+    }
 }
