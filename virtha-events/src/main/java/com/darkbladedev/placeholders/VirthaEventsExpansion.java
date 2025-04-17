@@ -12,6 +12,7 @@ import com.darkbladedev.mechanics.ExplosiveWeek;
 import com.darkbladedev.mechanics.UndeadWeek;
 import com.darkbladedev.mechanics.WeeklyEventManager;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
 public class VirthaEventsExpansion extends PlaceholderExpansion {
@@ -73,9 +74,10 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
                         "%virtha_event_time_remaining_short%",
                         "%virtha_event_progress_percent%"
                     };
-                    
-                    // Process each placeholder to force refresh
-                    me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, String.join(" ", placeholders));
+                    for (String placeholder : placeholders) {
+                        // Process each placeholder to force refresh
+                        PlaceholderAPI.setPlaceholders(player, placeholder); 
+                    }
                 }
                 
                 // Log the refresh for debugging purposes
@@ -92,9 +94,8 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
             return "";
         }
 
-        refreshPlaceholders();
-
         WeeklyEventManager eventManager = plugin.getWeeklyEventManager();
+
         
         // Basic event information
         if (identifier.equals("event_active")) {

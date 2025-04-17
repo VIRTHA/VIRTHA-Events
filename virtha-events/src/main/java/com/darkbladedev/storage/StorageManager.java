@@ -26,6 +26,6 @@ public class StorageManager {
     }
 
     public static String getPrefix() {
-        return config.getString("prefix");
+        return config.getString("prefix", "&2[ &5VIRTHA &3Events &2]");
     }
 }

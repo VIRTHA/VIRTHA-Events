@@ -1,7 +1,6 @@
 package com.darkbladedev.mechanics;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -107,25 +106,35 @@ public class HealthSteal implements Listener {
         Date expirationDate = new Date(System.currentTimeMillis() + (banHours * 60 * 60 * 1000));
         
         // Mensaje para el jugador
-        String banMessage = ColorText.Colorize("&c¡Has alcanzado el mínimo de corazones permitidos! &7\n" +
-                                              "&fSerás baneado por &c" + banHours + " horas&f.\n" +
-                                              "&7Este es tu baneo número &c" + banCount);
+        String banMessage = ColorText.ColorizeNoPrefix(
+            "&c&l¡Has alcanzado el mínimo de corazones permitidos!\n\n" +
+            "&fSerás baneado por &c" + banHours + " horas&f.\n" +
+            "&7Este es tu baneo número &c" + banCount
+        );
         
         // Notificar al jugador antes del baneo
-        player.sendMessage(banMessage);
+        player.sendMessage(ColorText.Colorize("&c¡Has alcanzado el mínimo de corazones permitidos!"));
+        player.sendMessage(ColorText.Colorize("&fSerás baneado por &c" + banHours + " horas&f."));
+        player.sendMessage(ColorText.Colorize("&7Este es tu baneo número &c" + banCount));
         
         // Programar el baneo para ejecutarse después de un breve retraso
         Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("virtha-events"), () -> {
-            // Banear al jugador
-            Bukkit.getBannedPlayers().add((OfflinePlayer) player);
-
+            // Banear al jugador por nombre
+            Bukkit.getBanList(BanList.Type.NAME).addBan(
+                player.getName(),
+                BAN_REASON,
+                expirationDate,
+                "VIRTHA System"
+            );
+    
+            // Banear al jugador por IP
             Bukkit.getBanList(BanList.Type.IP).addBan(
                 player.getAddress().getAddress().getHostAddress(),
                 BAN_REASON,
                 expirationDate,
-                "VIRTHA System..."
+                "VIRTHA System"
             );
-
+    
             // Expulsar al jugador
             player.kickPlayer(banMessage);
             

@@ -1,10 +1,13 @@
 package com.darkbladedev.commands;
 
+import java.util.concurrent.TimeUnit;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import com.darkbladedev.VirthaEventsMain;
 import com.darkbladedev.data.EventType;
 import com.darkbladedev.mechanics.AcidWeek;
 import com.darkbladedev.mechanics.BloodAndIronWeek;
@@ -14,6 +17,7 @@ import com.darkbladedev.mechanics.ParanoiaEffect;
 import com.darkbladedev.mechanics.SizeRandomizer;
 import com.darkbladedev.mechanics.ToxicFog;
 import com.darkbladedev.mechanics.UndeadWeek;
+import com.darkbladedev.mechanics.WeeklyEventManager;
 import com.darkbladedev.utils.ColorText;
 import com.darkbladedev.utils.TimeConverter;
 
@@ -37,12 +41,39 @@ public class CreateEventCommand implements CommandExecutor {
         EventType eventType = EventType.getByName(eventTypeName);
         
         if (eventType == null) {
-            sender.sendMessage(ColorText.Colorize("&cUnknown event type: " + eventTypeName));
-            //EventType.sendEventList(sender);
+            sender.sendMessage(ColorText.Colorize("&cTipo de evento desconocido: " + eventTypeName));
             return false;
         }
         
-
+        // Get the WeeklyEventManager instance
+        WeeklyEventManager eventManager = ((VirthaEventsMain) plugin).getWeeklyEventManager();
+        
+        // Check if this is a weekly event
+        if (eventTypeName.contains("week") || eventTypeName.equals("toxic_fog")) {
+            // For weekly events, use the WeeklyEventManager
+            long duration = TimeUnit.DAYS.toMillis(7); // Default to 7 days
+            
+            // If there's a duration argument, parse it
+            if (args.length > 2) {
+                try {
+                    int days = Integer.parseInt(args[2]);
+                    duration = TimeUnit.DAYS.toMillis(days);
+                } catch (NumberFormatException e) {
+                    // Ignore and use default
+                }
+            }
+            
+            // Start the event using the WeeklyEventManager
+            boolean started = eventManager.startEventFromCommand(eventType, duration);
+            
+            if (started) {
+                sender.sendMessage(ColorText.Colorize("&aEvento semanal iniciado: " + eventTypeName));
+            }
+            
+            return true;
+        }
+        
+        // For non-weekly events, continue with the existing implementation
         sender.sendMessage(ColorText.Colorize("&aRunning event: " + eventType.name()));
         
         switch (eventType.getEventName()) {
