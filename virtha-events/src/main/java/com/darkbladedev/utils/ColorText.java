@@ -7,8 +7,24 @@ import com.darkbladedev.storage.StorageManager;
 
 public class ColorText {
 
-    public static final String prefix = StorageManager.getPrefix();
+    private static String prefix = null;
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
+
+    /**
+     * Gets the prefix, initializing it if necessary
+     * @return The current prefix
+     */
+    private static String getPrefix() {
+        if (prefix == null) {
+            try {
+                prefix = StorageManager.getPrefix();
+            } catch (Exception e) {
+                // Fallback to a default prefix if StorageManager isn't ready
+                prefix = "&7[ &5VIRTHA &3Events &7]";
+            }
+        }
+        return prefix;
+    }
 
     /**
      * Colorizes text with the default prefix
@@ -16,7 +32,7 @@ public class ColorText {
      * @return Colorized text with default prefix
      */
     public static String Colorize(String text) {
-        return ColorizeWithPrefix(text, prefix);
+        return ColorizeWithPrefix(text, getPrefix());
     }
     
     /**

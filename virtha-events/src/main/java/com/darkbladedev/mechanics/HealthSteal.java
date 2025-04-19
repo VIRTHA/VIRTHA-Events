@@ -12,10 +12,18 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.plugin.Plugin;
 
 import com.darkbladedev.utils.ColorText;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +34,20 @@ public class HealthSteal implements Listener {
     
     private static final String BAN_REASON = "Has alcanzado el mínimo de corazones permitidos";
     private final Map<UUID, Integer> banCountMap = new HashMap<>();
-
+    private final File banDataFile;
+    private final Plugin plugin;
     
-    public HealthSteal() {
-        // Constructor
+    public HealthSteal(Plugin plugin) {
+        this.plugin = plugin;
+        this.banDataFile = new File(plugin.getDataFolder(), "ban_data.json");
+        
+        // Create data folder if it doesn't exist
+        if (!plugin.getDataFolder().exists()) {
+            plugin.getDataFolder().mkdirs();
+        }
+        
+        // Load ban data from JSON file
+        loadBanData();
     }
     
     @EventHandler
@@ -101,6 +119,9 @@ public class HealthSteal implements Listener {
         int banCount = banCountMap.getOrDefault(playerUUID, 0) + 1;
         banCountMap.put(playerUUID, banCount);
         
+        // Save the updated ban count to JSON
+        saveBanData();
+        
         // Calcular la duración del baneo (6 horas * número de baneos)
         long banHours = 6L * banCount;
         Date expirationDate = new Date(System.currentTimeMillis() + (banHours * 60 * 60 * 1000));
@@ -118,7 +139,7 @@ public class HealthSteal implements Listener {
         player.sendMessage(ColorText.Colorize("&7Este es tu baneo número &c" + banCount));
         
         // Programar el baneo para ejecutarse después de un breve retraso
-        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("virtha-events"), () -> {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
             // Banear al jugador por nombre
             Bukkit.getBanList(BanList.Type.NAME).addBan(
                 player.getName(),
@@ -126,7 +147,7 @@ public class HealthSteal implements Listener {
                 expirationDate,
                 "VIRTHA System"
             );
-    
+
             // Banear al jugador por IP
             Bukkit.getBanList(BanList.Type.IP).addBan(
                 player.getAddress().getAddress().getHostAddress(),
@@ -134,7 +155,7 @@ public class HealthSteal implements Listener {
                 expirationDate,
                 "VIRTHA System"
             );
-    
+
             // Expulsar al jugador
             player.kickPlayer(banMessage);
             
@@ -144,5 +165,50 @@ public class HealthSteal implements Listener {
                 "(Baneo #" + banCount + ")"
             ));
         }, 40L); // 2 segundos de retraso (40 ticks)
+    }
+    
+    /**
+     * Loads ban data from the JSON file
+     */
+    private void loadBanData() {
+        if (!banDataFile.exists()) {
+            return;
+        }
+        
+        try (FileReader reader = new FileReader(banDataFile)) {
+            JSONParser parser = new JSONParser();
+            JSONObject banData = (JSONObject) parser.parse(reader);
+            
+            for (Object key : banData.keySet()) {
+                String uuidString = (String) key;
+                UUID uuid = UUID.fromString(uuidString);
+                Long banCount = (Long) banData.get(uuidString);
+                
+                banCountMap.put(uuid, banCount.intValue());
+            }
+            
+            plugin.getLogger().info("Ban data loaded successfully: " + banCountMap.size() + " records");
+        } catch (IOException | ParseException e) {
+            plugin.getLogger().severe("Error loading ban data: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Saves ban data to the JSON file
+     */
+    @SuppressWarnings("unchecked")
+    private void saveBanData() {
+        JSONObject banData = new JSONObject();
+        
+        for (Map.Entry<UUID, Integer> entry : banCountMap.entrySet()) {
+            banData.put(entry.getKey().toString(), entry.getValue());
+        }
+        
+        try (FileWriter writer = new FileWriter(banDataFile)) {
+            writer.write(banData.toJSONString());
+            writer.flush();
+        } catch (IOException e) {
+            plugin.getLogger().severe("Error saving ban data: " + e.getMessage());
+        }
     }
 }

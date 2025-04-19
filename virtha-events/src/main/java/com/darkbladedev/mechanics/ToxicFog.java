@@ -136,7 +136,6 @@ public class ToxicFog {
      * @param player The player to check
      * @return true if the player should be affected, false otherwise
      */
-    @SuppressWarnings("unused")
     private boolean shouldAffectPlayer(Player player) {
         return !isPlayerSafe(player);
     }
@@ -146,7 +145,7 @@ public class ToxicFog {
         if (toxicFogTask != null) {
             toxicFogTask.cancel();
         }
-        
+
         // Start toxic fog task
         toxicFogTask = new BukkitRunnable() {
             @Override

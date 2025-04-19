@@ -6,13 +6,33 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
+import org.bukkit.plugin.Plugin;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.darkbladedev.utils.ColorText;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class BanManager implements Listener {
+    private final Map<UUID, Integer> banCountMap = new HashMap<>();
+    private File banDataFile;
+    
+    public BanManager() {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("virtha-events");
+        if (plugin != null) {
+            this.banDataFile = new File(plugin.getDataFolder(), "ban_data.json");
+            loadBanData();
+        }
+    }
 
     /**
      * Handles player login attempts and provides ban time information
@@ -28,6 +48,10 @@ public class BanManager implements Listener {
             
             String playerName = event.getPlayer().getName();
             String playerIP = event.getAddress().getHostAddress();
+            UUID playerUUID = event.getPlayer().getUniqueId();
+            
+            // Get ban count for this player
+            int banCount = banCountMap.getOrDefault(playerUUID, 0);
             
             // Check if player is banned by name
             if (banList.isBanned(playerName)) {
@@ -47,7 +71,8 @@ public class BanManager implements Listener {
                         String banMessage = ColorText.ColorizeNoPrefix(
                             "&c&l¡ESTÁS BANEADO!\n\n" +
                             "&fRazón: &e" + (reason != null ? reason : "No especificada") + "\n" +
-                            "&fTiempo restante: &e" + formattedTime + "\n\n" +
+                            "&fTiempo restante: &e" + formattedTime + "\n" +
+                            "&fBaneo número: &e" + banCount + "\n\n" +
                             "&7Si crees que esto es un error, contacta a un administrador."
                         );
                         
@@ -74,7 +99,8 @@ public class BanManager implements Listener {
                         String banMessage = ColorText.ColorizeNoPrefix(
                             "&c&l¡ESTÁS BANEADO!\n\n" +
                             "&fRazón: &e" + (reason != null ? reason : "No especificada") + "\n" +
-                            "&fTiempo restante: &e" + formattedTime + "\n\n" +
+                            "&fTiempo restante: &e" + formattedTime + "\n" +
+                            "&fBaneo número: &e" + banCount + "\n\n" +
                             "&7Si crees que esto es un error, contacta a un administrador."
                         );
                         
@@ -83,6 +109,30 @@ public class BanManager implements Listener {
                     }
                 }
             }
+        }
+    }
+    
+    /**
+     * Loads ban data from the JSON file
+     */
+    private void loadBanData() {
+        if (banDataFile == null || !banDataFile.exists()) {
+            return;
+        }
+        
+        try (FileReader reader = new FileReader(banDataFile)) {
+            JSONParser parser = new JSONParser();
+            JSONObject banData = (JSONObject) parser.parse(reader);
+            
+            for (Object key : banData.keySet()) {
+                String uuidString = (String) key;
+                UUID uuid = UUID.fromString(uuidString);
+                Long banCount = (Long) banData.get(uuidString);
+                
+                banCountMap.put(uuid, banCount.intValue());
+            }
+        } catch (IOException | ParseException e) {
+            Bukkit.getLogger().severe("Error loading ban data in BanManager: " + e.getMessage());
         }
     }
     

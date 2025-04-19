@@ -15,6 +15,12 @@ commands:
     aliases: [ve, virthae]
     permission: virthaevents.access
     permission-message: "!STOP¡ 🚫 You do not have permission to use this command."
+  vunban:
+    description: Desbanea a un jugador baneado por el plugin
+    usage: /vunban <jugador>
+    permission: virtha.admin.unban
+    aliases: [virthaevents-unban, vevents-unban]
+    permission-message: "!STOP¡ 🚫 You do not have permission to use this command."
 
 
 # Permissions Statement
@@ -27,4 +33,7 @@ permissions:
   # Command Permissions
   virthaevents.command.health:
     description: "Allows to use /virtha_events health command."
+    default: op
+  virtha.admin.unban:
+    description: Permite desbanear jugadores
     default: op

@@ -366,7 +366,6 @@ public class AcidWeek implements Listener {
     }
     
     // Missing method implementation
-    @SuppressWarnings("unused")
     private boolean isExposedToRain(Player player, World world) {
         if (!world.hasStorm()) {
             return false;

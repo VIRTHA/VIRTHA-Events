@@ -56,6 +56,9 @@ public class UndeadWeek implements Listener {
     public UndeadWeek(Plugin plugin, long duration) {
         this.plugin = plugin;
         this.duration = duration;
+        
+        // Register events
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
     
     public void stop() {
@@ -217,10 +220,10 @@ public class UndeadWeek implements Listener {
             }
         }
         
-        // Daño doble de no-muertos
+        // Daño doble de no-muertos durante toda la semana
         if (isUndead(damager)) {
             double damage = event.getDamage();
-            event.setDamage(damage * 2);
+            event.setDamage(damage * 2.5);
             
             // Infectar jugadores si son golpeados por zombies
             if (damager.getType() == EntityType.ZOMBIE && victim instanceof Player) {
@@ -395,6 +398,7 @@ public class UndeadWeek implements Listener {
             mainTask.cancel();
         }
         
+
         // Start the main task
         mainTask = new BukkitRunnable() {
             @Override

@@ -1,11 +1,15 @@
 package com.darkbladedev;
 
+import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.darkbladedev.commands.UnbanCommand;
 import com.darkbladedev.commands.VirthaEventsMainCommand;
 import com.darkbladedev.enchants.AcidResistance;
+import com.darkbladedev.mechanics.BanManager;
 import com.darkbladedev.mechanics.HealthSteal;
 import com.darkbladedev.mechanics.WeeklyEventManager;
 import com.darkbladedev.placeholders.VirthaEventsExpansion;
@@ -19,7 +23,6 @@ public class VirthaEventsMain extends JavaPlugin{
     public static AcidResistance acidResistance;
     private WeeklyEventManager weeklyEventManager;
     private VirthaEventsExpansion placeholderExpansion;
-    @SuppressWarnings("unused")
     private StorageManager storageManager;
 
     @Override
@@ -75,7 +78,8 @@ public class VirthaEventsMain extends JavaPlugin{
         PluginManager pluginManager = getServer().getPluginManager();
 
         try {
-            pluginManager.registerEvents(new HealthSteal(), this);
+            pluginManager.registerEvents(new BanManager(), this);
+            pluginManager.registerEvents(new HealthSteal(this), this);
             
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Events registered! 📝"));
         } catch (Exception e) {
@@ -84,7 +88,7 @@ public class VirthaEventsMain extends JavaPlugin{
         }
     }
 
-    public void registerCommands() {
+    private void registerCommands() {
         try {
             getCommand("virtha_events").setExecutor(new VirthaEventsMainCommand(this));
             getCommand("virtha_events").setTabCompleter(new CommandTabcompleter());
@@ -94,6 +98,11 @@ public class VirthaEventsMain extends JavaPlugin{
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&cError registering commands!"));
             e.printStackTrace();
         }
+        
+        // Register the unban command
+        File banDataFile = new File(getDataFolder(), "ban_data.json");
+        getCommand("vunban").setExecutor(new UnbanCommand(banDataFile));
+        getCommand("vunban").setTabCompleter(new UnbanCommand(banDataFile));
     }
     
     public WeeklyEventManager getWeeklyEventManager() {
