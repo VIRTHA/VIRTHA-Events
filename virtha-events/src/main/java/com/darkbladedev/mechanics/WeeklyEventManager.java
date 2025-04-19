@@ -19,6 +19,7 @@ import org.json.simple.parser.ParseException;
 
 import com.darkbladedev.data.EventType;
 import com.darkbladedev.utils.ColorText;
+import com.darkbladedev.utils.TimeConverter;
 
 public class WeeklyEventManager {
     private static final long WEEK_IN_MILLIS = TimeUnit.DAYS.toMillis(7);
@@ -133,14 +134,6 @@ public class WeeklyEventManager {
     }
     
     /**
-     * Starts a specific event with the given duration
-     * This method can be called from commands to start events manually
-     * 
-     * @param eventType The type of event to start
-     * @param duration The duration in milliseconds
-     * @return true if the event was started successfully, false otherwise
-     */
-    /**
      * Starts an event from a command with proper synchronization
      * @param eventType The type of event to start
      * @param duration The duration in milliseconds
@@ -211,16 +204,25 @@ public class WeeklyEventManager {
         
         // Announce the end of the event
         Bukkit.broadcastMessage(ColorText.Colorize("&6&l¡EVENTO SEMANAL FINALIZADO!"));
-        
-        // Schedule a new random event to start after a delay (1 hour)
+    }
+    
+    /**
+     * Schedules the next event
+     */
+    public void scheduleNextEvent(String timer) {
+        if (!isEventActive || currentEvent == null) {
+            return;
+        }
+
+        // Programar el siguiente evento
         weeklyTask = new BukkitRunnable() {
             @Override
             public void run() {
                 startRandomEvent();
             }
-        }.runTaskLater(plugin, 20 * 60 * 60); // 1 hour delay
+        }.runTaskLater(plugin, TimeConverter.parseTimeToTicks(timer));
     }
-    
+
     /**
      * Clears the event data file
      */
@@ -305,12 +307,12 @@ public class WeeklyEventManager {
     private String getEventDisplayName(EventType eventType) {
         switch (eventType.getEventName()) {
             case "size_randomizer": return "Tamaños Aleatorios";
-            case "acid_week": return "Semana Ácida";
+            case "acid_week": return "Ácida";
             case "toxic_fog": return "Niebla Tóxica";
-            case "undead_week": return "Semana de No-Muertos";
+            case "undead_week": return "No-Muertos";
             case "paranoia_effect": return "Paranoia";
-            case "explosive_week": return "Semana Explosiva";
-            case "blood_and_iron_week": return "Semana de Sangre y Hierro";
+            case "explosive_week": return "Explosiva";
+            case "blood_and_iron_week": return "Sangre y Hierro";
             default: return eventType.getEventName();
         }
     }
@@ -433,7 +435,7 @@ public class WeeklyEventManager {
         try (FileWriter writer = new FileWriter(dataFile)) {
             writer.write(data.toJSONString());
             writer.flush();
-            plugin.getLogger().info("Event data saved successfully");
+            plugin.getLogger().info(ColorText.Colorize("&aEvent data saved successfully"));
         } catch (IOException e) {
             plugin.getLogger().severe("Error al guardar datos del evento semanal: " + e.getMessage());
         }

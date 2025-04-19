@@ -34,6 +34,9 @@ permissions:
   virthaevents.command.health:
     description: "Allows to use /virtha_events health command."
     default: op
+  virthaevents.command.effects.zombieinfection:
+    description: "Allows to use /virtha_events effects zombieinfection command."
+    default: op
   virtha.admin.unban:
     description: Permite desbanear jugadores
     default: op

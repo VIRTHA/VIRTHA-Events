@@ -8,9 +8,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.darkbladedev.commands.UnbanCommand;
 import com.darkbladedev.commands.VirthaEventsMainCommand;
+import com.darkbladedev.commands.ZombieInfectionCommand;
+import com.darkbladedev.effects.ZombieInfection;
 import com.darkbladedev.enchants.AcidResistance;
 import com.darkbladedev.mechanics.BanManager;
 import com.darkbladedev.mechanics.HealthSteal;
+import com.darkbladedev.mechanics.HealthRewards;
 import com.darkbladedev.mechanics.WeeklyEventManager;
 import com.darkbladedev.placeholders.VirthaEventsExpansion;
 import com.darkbladedev.storage.StorageManager;
@@ -24,10 +27,16 @@ public class VirthaEventsMain extends JavaPlugin{
     private WeeklyEventManager weeklyEventManager;
     private VirthaEventsExpansion placeholderExpansion;
     private StorageManager storageManager;
+    private ZombieInfection zombieInfection;
+    private ZombieInfectionCommand zombieInfectionCommand;
 
     @Override
     public void onEnable() {
         plugin = this;
+
+        // Initialize zombie infection system
+        zombieInfection = ZombieInfection.getInstance(this);
+        zombieInfectionCommand = new ZombieInfectionCommand(zombieInfection);
 
         registerCommands();
         registerEvents();
@@ -80,6 +89,11 @@ public class VirthaEventsMain extends JavaPlugin{
         try {
             pluginManager.registerEvents(new BanManager(), this);
             pluginManager.registerEvents(new HealthSteal(this), this);
+            // Register the new HealthRewards listener
+            new HealthRewards(this);
+            
+            // Register zombie infection listener
+            pluginManager.registerEvents(zombieInfection, this);
             
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Events registered! 📝"));
         } catch (Exception e) {
@@ -91,7 +105,7 @@ public class VirthaEventsMain extends JavaPlugin{
     private void registerCommands() {
         try {
             getCommand("virtha_events").setExecutor(new VirthaEventsMainCommand(this));
-            getCommand("virtha_events").setTabCompleter(new CommandTabcompleter());
+            getCommand("virtha_events").setTabCompleter(new CommandTabcompleter(this));
             
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Commands registered! 📝"));
         } catch (Exception e) {
@@ -107,5 +121,9 @@ public class VirthaEventsMain extends JavaPlugin{
     
     public WeeklyEventManager getWeeklyEventManager() {
         return weeklyEventManager;
+    }
+    
+    public ZombieInfectionCommand getZombieInfectionCommand() {
+        return zombieInfectionCommand;
     }
 }

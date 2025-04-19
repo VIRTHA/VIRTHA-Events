@@ -220,10 +220,10 @@ public class UndeadWeek implements Listener {
             }
         }
         
-        // Daño doble de no-muertos durante toda la semana
+        // Daño doble de no-muertos
         if (isUndead(damager)) {
             double damage = event.getDamage();
-            event.setDamage(damage * 2.5);
+            event.setDamage(damage * 2.0);
             
             // Infectar jugadores si son golpeados por zombies
             if (damager.getType() == EntityType.ZOMBIE && victim instanceof Player) {
@@ -398,7 +398,6 @@ public class UndeadWeek implements Listener {
             mainTask.cancel();
         }
         
-
         // Start the main task
         mainTask = new BukkitRunnable() {
             @Override

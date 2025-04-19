@@ -56,6 +56,11 @@ public class EventControlCommand implements CommandExecutor {
                 eventManager.forceStopCurrentEvent();
                 sender.sendMessage(ColorText.Colorize("&aEvento detenido forzosamente."));
                 break;
+
+            case "schedule":
+                eventManager.scheduleNextEvent(args[2]);
+                sender.sendMessage(ColorText.Colorize("&aEvento programado para ejecutarse en " + args[2]));
+                break;
                 
             default:
                 sender.sendMessage(ColorText.Colorize("&cAcción desconocida. Use: pause, resume o stop."));

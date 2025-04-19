@@ -3,14 +3,23 @@ package com.darkbladedev.tabcompleter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
+import com.darkbladedev.VirthaEventsMain;
 import com.darkbladedev.utils.TimeConverter;
 
 
 public class CommandTabcompleter implements TabCompleter {
+
+    private final VirthaEventsMain plugin;
+
+    public CommandTabcompleter(VirthaEventsMain plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
@@ -22,7 +31,8 @@ public class CommandTabcompleter implements TabCompleter {
                     Arrays.asList(
                         "run_event",
                         "health",
-                        "event_control"
+                        "event_control",
+                        "effects"
                     )
                 );
             } else if (args[0].equalsIgnoreCase("run_event")) {
@@ -109,9 +119,26 @@ public class CommandTabcompleter implements TabCompleter {
                         Arrays.asList(
                             "pause",
                             "resume",
-                            "stop"
+                            "stop",
+                            "schedule"
                         )
                     );
+                } else if (args.length == 3) {
+                    if (args[1].equalsIgnoreCase("schedule")) {
+                        completions.addAll(Arrays.asList(TimeConverter.getTimeCompletions()));
+                    }
+                }
+            } else if (args[0].equalsIgnoreCase("effects")) {
+                if (args.length == 2) {
+                    String partialEffect = args[1].toLowerCase();
+                    return Arrays.asList("zombie_infection" /* other effect types */)
+                            .stream()
+                            .filter(s -> s.startsWith(partialEffect))
+                            .collect(Collectors.toList());
+                } else if (args.length >= 3 && args[1].equalsIgnoreCase("zombie_infection")) {
+                    // Remove the first two arguments (ve, effects) and pass the rest to the zombie infection tab completer
+                    String[] zombieArgs = Arrays.copyOfRange(args, 2, args.length);
+                    return ((VirthaEventsMain) plugin).getZombieInfectionCommand().tabComplete(zombieArgs);
                 }
             }
         }
