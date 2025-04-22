@@ -19,6 +19,7 @@ import com.darkbladedev.placeholders.VirthaEventsExpansion;
 import com.darkbladedev.storage.StorageManager;
 import com.darkbladedev.tabcompleter.CommandTabcompleter;
 import com.darkbladedev.utils.ColorText;
+import com.darkbladedev.utils.WorldIndexManager;
 
 public class VirthaEventsMain extends JavaPlugin{
 
@@ -34,6 +35,9 @@ public class VirthaEventsMain extends JavaPlugin{
     public void onEnable() {
         plugin = this;
 
+        // Initialize world index manager
+        WorldIndexManager.updateWorldIndices();
+        
         // Initialize zombie infection system
         zombieInfection = ZombieInfection.getInstance(this);
         zombieInfectionCommand = new ZombieInfectionCommand(zombieInfection);

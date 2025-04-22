@@ -174,12 +174,12 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
     private String getDisplayName(String eventName) {
         switch (eventName) {
             case "size_randomizer": return "Tamaños Aleatorios";
-            case "acid_week": return "Semana Ácida";
+            case "acid_week": return "Ácida";
             case "toxic_fog": return "Niebla Tóxica";
-            case "undead_week": return "Semana de No-Muertos";
+            case "undead_week": return "No-Muertos";
             case "paranoia_effect": return "Paranoia";
-            case "explosive_week": return "Semana Explosiva";
-            case "blood_and_iron_week": return "Semana de Sangre y Hierro";
+            case "explosive_week": return "Explosiva";
+            case "blood_and_iron_week": return "Sangre y Hierro";
             default: return eventName;
         }
     }

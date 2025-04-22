@@ -19,7 +19,10 @@ public class EventControlCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ColorText.Colorize("&cUsage: /virtha_events event_control <pause|resume|stop>"));
+            sender.sendMessage(ColorText.Colorize("&cUsage: /virtha_events event_control <pause|resume|stop|schedule>"));
+            return false;
+        } else if (args.length > 3 && args[1].equalsIgnoreCase("schedule")) {
+            sender.sendMessage(ColorText.Colorize("&cUso: /virtha_events event_control schedule [tiempo]"));
             return false;
         }
         

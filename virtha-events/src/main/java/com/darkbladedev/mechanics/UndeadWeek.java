@@ -26,6 +26,9 @@ import xyz.oribuin.eternaltags.obj.Tag;
 
 import java.util.*;
 
+// Add this import at the top with other imports
+import org.bukkit.event.entity.EntitySpawnEvent;
+
 public class UndeadWeek implements Listener {
 
     // EternalTags API
@@ -125,13 +128,28 @@ public class UndeadWeek implements Listener {
         isRedMoonActive = true;
         Bukkit.broadcastMessage(ColorText.Colorize("&4[&cSemana de los No Muertos&4] &c¡La Noche Roja ha comenzado! Los no-muertos son más rápidos y las camas explotan."));
         
-        // Aumentar velocidad de los no-muertos
+        // Aumentar velocidad de los no-muertos y asegurar que tengan fuerza
         for (World world : Bukkit.getWorlds()) {
             for (LivingEntity entity : world.getLivingEntities()) {
                 if (isUndead(entity)) {
-                    entity.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(
-                        entity.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue() * 2
-                    );
+                    // Apply movement speed boost
+                    if (entity.getAttribute(Attribute.MOVEMENT_SPEED) != null) {
+                        entity.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(
+                            entity.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue() * 2
+                        );
+                    }
+                    
+                    // Ensure they have Strength II
+                    if (!entity.hasPotionEffect(PotionEffectType.STRENGTH)) {
+                        entity.addPotionEffect(new PotionEffect(
+                            PotionEffectType.STRENGTH,
+                            Integer.MAX_VALUE,
+                            1,
+                            false,
+                            false,
+                            true
+                        ));
+                    }
                 }
             }
         }
@@ -205,6 +223,39 @@ public class UndeadWeek implements Listener {
         }
     }
     
+
+    @EventHandler
+    public void onEntitySpawn(EntitySpawnEvent event) {
+        if (!isActive) return;
+        
+        Entity entity = event.getEntity();
+        
+        // Check if the entity is undead and is a LivingEntity (to apply potion effects)
+        if (isUndead(entity) && entity instanceof LivingEntity) {
+            LivingEntity livingEntity = (LivingEntity) entity;
+            
+            // Apply Strength II effect (infinite duration)
+            livingEntity.addPotionEffect(new PotionEffect(
+                PotionEffectType.STRENGTH,
+                Integer.MAX_VALUE,  // Infinite duration
+                1,                  // Level II (0-based, so 1 = level II)
+                false,              // No ambient particles
+                false,              // No particles
+                true                // Show icon
+            ));
+            
+            // If it's red moon night, also apply speed boost as before
+            if (isRedMoonActive) {
+                if (livingEntity.getAttribute(Attribute.MOVEMENT_SPEED) != null) {
+                    livingEntity.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(
+                        livingEntity.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue() * 2
+                    );
+                }
+            }
+        }
+    }
+
+
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (!isActive) return;
@@ -220,17 +271,13 @@ public class UndeadWeek implements Listener {
             }
         }
         
-        // Daño doble de no-muertos
-        if (isUndead(damager)) {
-            double damage = event.getDamage();
-            event.setDamage(damage * 2.0);
-            
-            // Infectar jugadores si son golpeados por zombies
-            if (damager.getType() == EntityType.ZOMBIE && victim instanceof Player) {
-                Player player = (Player) victim;
-                infectedPlayers.put(player.getUniqueId(), true);
-                player.sendMessage(ColorText.Colorize("&c¡Has sido infectado! Come una zanahoria dorada para curarte."));
-            }
+        // Removed the damage doubling code since we're now using Strength effect
+        
+        // Infectar jugadores si son golpeados por zombies
+        if (isUndead(damager) && damager.getType() == EntityType.ZOMBIE && victim instanceof Player) {
+            Player player = (Player) victim;
+            infectedPlayers.put(player.getUniqueId(), true);
+            player.sendMessage(ColorText.Colorize("&c¡Has sido infectado! Come una zanahoria dorada para curarte."));
         }
         
         // Registrar muertes en noche roja

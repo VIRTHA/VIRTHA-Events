@@ -7,9 +7,11 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -22,7 +24,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.darkbladedev.utils.ColorText;
-
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -47,6 +48,15 @@ public class ZombieInfection implements Listener {
     
     // Contador de infecciones curadas por jugador
     private final Map<UUID, Integer> curedInfectionsCount = new HashMap<>();
+
+        // World exclusion fields
+        private final Set<String> excludedWorlds = new HashSet<>();
+        private boolean applyToAllWorlds = true;
+        
+        // Action bar cooldown
+        private final Map<UUID, Long> lastActionBarMessageTime = new HashMap<>();
+        private final long ACTION_BAR_COOLDOWN = 3000; // 3 seconds cooldown in milliseconds
+    
     
     private BukkitTask timeCheckTask;
     private boolean isEnabled = true;
@@ -83,24 +93,28 @@ public class ZombieInfection implements Listener {
             public void run() {
                 if (!isEnabled) return;
                 
-                // Obtener el tiempo del mundo principal
-                World world = Bukkit.getWorlds().get(0);
-                long time = world.getTime();
-                
-                // Aplicar efectos según la hora del día a todos los jugadores infectados
-                for (UUID playerId : infectedPlayers) {
-                    Player player = Bukkit.getPlayer(playerId);
-                    if (player != null && player.isOnline()) {
-                        applyTimeBasedEffects(player, time);
+                // Process each world separately
+                for (World world : Bukkit.getWorlds()) {
+                    // Skip excluded worlds
+                    if (excludedWorlds.contains(world.getName())) {
+                        continue;
+                    }
+                    
+                    long time = world.getTime();
+                    
+                    // Apply effects to infected players in this world
+                    for (UUID playerId : infectedPlayers) {
+                        Player player = Bukkit.getPlayer(playerId);
+                        if (player != null && player.isOnline() && 
+                            (applyToAllWorlds || player.getWorld().equals(world))) {
+                            applyTimeBasedEffects(player, time);
+                        }
                     }
                 }
             }
         }.runTaskTimer(plugin, 0L, 100L); // Verificar cada 5 segundos (100 ticks)
     }
     
-    // Add these fields at the top of the class with other fields
-    private final Map<UUID, Long> lastActionBarMessageTime = new HashMap<>();
-    private final long ACTION_BAR_COOLDOWN = 3000; // 3 seconds cooldown in milliseconds
     
     /**
      * Aplica efectos basados en la hora del día
@@ -108,32 +122,85 @@ public class ZombieInfection implements Listener {
      * @param time El tiempo actual del mundo (0-24000)
      */
     private void applyTimeBasedEffects(Player player, long time) {
-        // Mañana (0-3000) y atardecer (12000-14000): Debilidad
+        // Determinar el período del día basado en el tiempo
+        String timePeriod;
+        
         if ((time >= 0 && time <= 3000) || (time >= 12000 && time <= 14000)) {
-            if (!player.hasPotionEffect(PotionEffectType.WEAKNESS)) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 140, 0, false, true, true));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 100, 0, false, true, true));
-                sendActionBar(player, "&7La infección zombie te debilita durante este momento del día...");
-            }
+            timePeriod = "MORNING_DUSK";
+        } else if (time >= 5000 && time <= 11000) {
+            timePeriod = "MIDDAY";
+        } else if (time > 14000 && time <= 24000) {
+            timePeriod = "NIGHT";
+        } else {
+            timePeriod = "TRANSITION";
         }
-        // Mediodía y parte de la tarde (5000-11000): Fuego
-        else if (time >= 5000 && time <= 11000) {
-            // Aplicar efecto de wither y fuego sin importar si ya tiene el efecto
-            player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 0, false, true, true));
-            player.setFireTicks(Math.max(player.getFireTicks(), 100)); // Asegurar al menos 5 segundos de fuego
-            sendActionBar(player, "&c¡La luz del sol quema tu piel infectada!");
-            
-            // Efectos visuales adicionales para enfatizar el fuego
-            player.getWorld().spawnParticle(Particle.FLAME, 
-                player.getLocation().add(0, 1, 0), 
-                10, 0.3, 0.5, 0.3, 0.01);
-        }
-        // Noche (14000-24000): Fuerza
-        else if (time >= 14000 && time <= 24000) {
-            if (!player.hasPotionEffect(PotionEffectType.STRENGTH)) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 300, 0, false, true, true));
-                sendActionBar(player, "&8La oscuridad de la noche &4fortalece &8tu infección...");
-            }
+        
+        // Aplicar efectos según el período del día usando switch
+        switch (timePeriod) {
+            case "MORNING_DUSK":
+                // Eliminar efectos de otros períodos
+                player.removePotionEffect(PotionEffectType.STRENGTH);
+                player.setFireTicks(0);
+                
+                if (!player.hasPotionEffect(PotionEffectType.NAUSEA)) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 140, 0, false, true, true));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 100, 0, false, true, true));
+                    sendActionBar(player, "&7La infección zombie te debilita durante este momento del día...");
+                }
+                break;
+                
+            case "MIDDAY":
+                // Eliminar efectos de otros períodos
+                player.removePotionEffect(PotionEffectType.STRENGTH);
+                
+                // Verificar si el jugador está expuesto a la luz directa del sol
+                boolean isInDirectSunlight = player.getLocation().getBlock().getLightFromSky() == 15 && 
+                                            player.getWorld().isClearWeather() &&
+                                            player.getLocation().getWorld().getTime() < 12000;
+                
+                if (isInDirectSunlight) {
+                    // Aplicar efecto de wither y fuego solo si está en luz directa del sol
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 0, false, true, true));
+                    player.setFireTicks(Math.max(player.getFireTicks(), 100)); // Asegurar al menos 5 segundos de fuego
+                    sendActionBar(player, "&c¡La luz directa del sol quema tu piel infectada!");
+                    
+                    // Efectos visuales adicionales para enfatizar el fuego
+                    player.getWorld().spawnParticle(Particle.FLAME, 
+                        player.getLocation().add(0, 1, 0), 
+                        10, 0.3, 0.5, 0.3, 0.01);
+                } else {
+                    // Si no está en luz directa, quitar el fuego pero mantener debilidad
+                    player.setFireTicks(0);
+                    player.removePotionEffect(PotionEffectType.WITHER);
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, false, true, true));
+                    sendActionBar(player, "&6La infección te debilita, pero estás a salvo de la luz solar directa.");
+                }
+                break;
+                
+            case "NIGHT":
+                // Eliminar efectos de otros períodos
+                player.removePotionEffect(PotionEffectType.NAUSEA);
+                player.removePotionEffect(PotionEffectType.HUNGER);
+                player.removePotionEffect(PotionEffectType.WITHER);
+                player.removePotionEffect(PotionEffectType.WEAKNESS);
+                player.setFireTicks(0);
+                
+                if (!player.hasPotionEffect(PotionEffectType.STRENGTH)) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 300, 0, false, true, true));
+                    sendActionBar(player, "&8La oscuridad de la noche &4fortalece &8tu infección...");
+                }
+                break;
+                
+            case "TRANSITION":
+            default:
+                // Eliminar todos los efectos en períodos de transición
+                player.removePotionEffect(PotionEffectType.NAUSEA);
+                player.removePotionEffect(PotionEffectType.HUNGER);
+                player.removePotionEffect(PotionEffectType.WITHER);
+                player.removePotionEffect(PotionEffectType.WEAKNESS);
+                player.removePotionEffect(PotionEffectType.STRENGTH);
+                player.setFireTicks(0);
+                break;
         }
         
         // Efectos visuales constantes para mostrar que está infectado
@@ -141,7 +208,58 @@ public class ZombieInfection implements Listener {
             player.getLocation().add(0, 1, 0), 
             5, 0.3, 0.5, 0.3, 0.01);
     }
-    
+
+    /**
+     * Adds a world to the exclusion list
+     * @param worldName The name of the world to exclude
+     * @return true if the world was added to the exclusion list, false if it was already excluded
+     */
+    public boolean excludeWorld(String worldName) {
+        return excludedWorlds.add(worldName);
+    }
+
+    /**
+     * Removes a world from the exclusion list
+     * @param worldName The name of the world to include
+     * @return true if the world was removed from the exclusion list, false if it wasn't excluded
+     */
+    public boolean includeWorld(String worldName) {
+        return excludedWorlds.remove(worldName);
+    }
+
+    /**
+     * Checks if a world is excluded from zombie infection mechanics
+     * @param worldName The name of the world to check
+     * @return true if the world is excluded, false otherwise
+     */
+    public boolean isWorldExcluded(String worldName) {
+        return excludedWorlds.contains(worldName);
+    }
+
+    /**
+     * Gets a copy of the set of excluded worlds
+     * @return A set containing the names of all excluded worlds
+     */
+    public Set<String> getExcludedWorlds() {
+        return new HashSet<>(excludedWorlds);
+    }
+
+    /**
+     * Sets whether to apply effects to players in all worlds or only in the world being processed
+     * @param applyToAll true to apply effects to all players regardless of world, false to only apply to players in the current world
+     */
+    public void setApplyToAllWorlds(boolean applyToAll) {
+        this.applyToAllWorlds = applyToAll;
+    }
+
+    /**
+     * Checks if effects are applied to players in all worlds
+     * @return true if effects are applied to all players regardless of world, false if only applied to players in the current world
+     */
+    public boolean isApplyToAllWorlds() {
+        return applyToAllWorlds;
+    }
+        
     /**
      * Envía un mensaje al action bar del jugador con control de cooldown
      * @param player El jugador al que enviar el mensaje
@@ -361,5 +479,35 @@ public class ZombieInfection implements Listener {
      */
     public int getCuredCount(UUID playerId) {
         return curedInfectionsCount.getOrDefault(playerId, 0);
+    }
+    
+    // Add this event handler after the other event handlers
+    @EventHandler
+    public void onEntityTarget(EntityTargetLivingEntityEvent event) {
+        if (!isEnabled) return;
+        
+        // Check if a zombie is targeting a player
+        if ((event.getEntity().getType() == EntityType.ZOMBIE || 
+             event.getEntity().getType() == EntityType.ZOMBIE_VILLAGER || 
+             event.getEntity().getType() == EntityType.DROWNED || 
+             event.getEntity().getType() == EntityType.HUSK) && 
+            event.getTarget() instanceof Player) {
+            
+            Player targetPlayer = (Player) event.getTarget();
+            
+            // If the player is infected, cancel the targeting
+            if (isInfected(targetPlayer)) {
+                event.setCancelled(true);
+                
+                // Occasionally show particles to indicate zombie is ignoring the player
+                if (Math.random() < 0.2) { // 20% chance to show particles
+                    event.getEntity().getWorld().spawnParticle(
+                        Particle.HAPPY_VILLAGER,
+                        event.getEntity().getLocation().add(0, 1.5, 0),
+                        5, 0.2, 0.2, 0.2, 0.01
+                    );
+                }
+            }
+        }
     }
 }
