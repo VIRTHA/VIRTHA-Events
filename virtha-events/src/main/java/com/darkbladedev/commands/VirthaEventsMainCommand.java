@@ -60,7 +60,7 @@ public class VirthaEventsMainCommand implements CommandExecutor {
                         return true;
                 }
             default:
-                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents <run_event|health|event_control>"));
+                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents <run_event | health | event_control | effects>"));
                 return false;
         
         }

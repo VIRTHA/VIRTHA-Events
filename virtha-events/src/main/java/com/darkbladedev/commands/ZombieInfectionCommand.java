@@ -102,78 +102,76 @@ public class ZombieInfectionCommand {
                 zombieInfection.setEnabled(newState);
                 sender.sendMessage(ColorText.Colorize("&6Sistema de infección zombie: " + (newState ? "&aActivado" : "&cDesactivado")));
                 break;
-
+    // Add these cases to the switch statement in the execute method
+    case "exclude_world":
+    case "excludeworld":
+        if (args.length < 2) {
+            sender.sendMessage(ColorText.Colorize("&cDebes especificar un mundo."));
+            return true;
+        }
+        
+        String worldToExclude = args[1];
+        if (Bukkit.getWorld(worldToExclude) == null) {
+            sender.sendMessage(ColorText.Colorize("&cMundo no encontrado: " + worldToExclude));
+            return true;
+        }
+        
+        boolean excluded = zombieInfection.excludeWorld(worldToExclude);
+        if (excluded) {
+            sender.sendMessage(ColorText.Colorize("&aMundo excluido: " + worldToExclude));
+        } else {
+            sender.sendMessage(ColorText.Colorize("&cEl mundo ya estaba excluido: " + worldToExclude));
+        }
+        break;
     
-        // Add these cases to the switch statement in the execute method
-        case "exclude_world":
-        case "excludeworld":
-            if (args.length < 2) {
-                sender.sendMessage(ColorText.Colorize("&cDebes especificar un mundo."));
-                return true;
-            }
-            
-            String worldToExclude = args[1];
-            if (Bukkit.getWorld(worldToExclude) == null) {
-                sender.sendMessage(ColorText.Colorize("&cMundo no encontrado: " + worldToExclude));
-                return true;
-            }
-            
-            boolean excluded = zombieInfection.excludeWorld(worldToExclude);
-            if (excluded) {
-                sender.sendMessage(ColorText.Colorize("&aMundo excluido: " + worldToExclude));
-            } else {
-                sender.sendMessage(ColorText.Colorize("&cEl mundo ya estaba excluido: " + worldToExclude));
-            }
-            break;
+    case "include_world":
+    case "includeworld":
+        if (args.length < 2) {
+            sender.sendMessage(ColorText.Colorize("&cDebes especificar un mundo."));
+            return true;
+        }
         
-        case "include_world":
-        case "includeworld":
-            if (args.length < 2) {
-                sender.sendMessage(ColorText.Colorize("&cDebes especificar un mundo."));
-                return true;
+        String worldToInclude = args[1];
+        boolean included = zombieInfection.includeWorld(worldToInclude);
+        if (included) {
+            sender.sendMessage(ColorText.Colorize("&aMundo incluido: " + worldToInclude));
+        } else {
+            sender.sendMessage(ColorText.Colorize("&cEl mundo no estaba excluido: " + worldToInclude));
+        }
+        break;
+    
+    case "list_worlds":
+    case "listworlds":
+        Set<String> excludedWorlds = zombieInfection.getExcludedWorlds();
+        if (excludedWorlds.isEmpty()) {
+            sender.sendMessage(ColorText.Colorize("&aNo hay mundos excluidos."));
+        } else {
+            sender.sendMessage(ColorText.Colorize("&aMundos excluidos:"));
+            for (String world : excludedWorlds) {
+                sender.sendMessage(ColorText.Colorize("&7- " + world));
             }
-            
-            String worldToInclude = args[1];
-            boolean included = zombieInfection.includeWorld(worldToInclude);
-            if (included) {
-                sender.sendMessage(ColorText.Colorize("&aMundo incluido: " + worldToInclude));
-            } else {
-                sender.sendMessage(ColorText.Colorize("&cEl mundo no estaba excluido: " + worldToInclude));
-            }
-            break;
+        }
+        break;
+    
+    case "apply_mode":
+    case "applymode":
+        if (args.length < 2) {
+            sender.sendMessage(ColorText.Colorize("&cDebes especificar un modo (all/current)."));
+            return true;
+        }
         
-        case "list_worlds":
-        case "listworlds":
-            Set<String> excludedWorlds = zombieInfection.getExcludedWorlds();
-            if (excludedWorlds.isEmpty()) {
-                sender.sendMessage(ColorText.Colorize("&aNo hay mundos excluidos."));
-            } else {
-                sender.sendMessage(ColorText.Colorize("&aMundos excluidos:"));
-                for (String world : excludedWorlds) {
-                    sender.sendMessage(ColorText.Colorize("&7- " + world));
-                }
-            }
-            break;
-        
-        case "apply_mode":
-        case "applymode":
-            if (args.length < 2) {
-                sender.sendMessage(ColorText.Colorize("&cDebes especificar un modo (all/current)."));
-                return true;
-            }
-            
-            String mode = args[1].toLowerCase();
-            if (mode.equals("all")) {
-                zombieInfection.setApplyToAllWorlds(true);
-                sender.sendMessage(ColorText.Colorize("&aLa infección zombie ahora se aplica a todos los jugadores independientemente del mundo."));
-            } else if (mode.equals("current")) {
-                zombieInfection.setApplyToAllWorlds(false);
-                sender.sendMessage(ColorText.Colorize("&aLa infección zombie ahora solo se aplica a jugadores en el mundo actual."));
-            } else {
-                sender.sendMessage(ColorText.Colorize("&cModo no válido. Usa 'all' o 'current'."));
-            }
-            break;
-                            
+        String mode = args[1].toLowerCase();
+        if (mode.equals("all")) {
+            zombieInfection.setApplyToAllWorlds(true);
+            sender.sendMessage(ColorText.Colorize("&aLa infección zombie ahora se aplica a todos los jugadores independientemente del mundo."));
+        } else if (mode.equals("current")) {
+            zombieInfection.setApplyToAllWorlds(false);
+            sender.sendMessage(ColorText.Colorize("&aLa infección zombie ahora solo se aplica a jugadores en el mundo actual."));
+        } else {
+            sender.sendMessage(ColorText.Colorize("&cModo no válido. Usa 'all' o 'current'."));
+        }
+        break;
+                    
             default:
                 sender.sendMessage(ColorText.Colorize("&cAcción desconocida. Usa: /ve effects zombie_infection <infectar|curar|estado|toggle> [jugador]"));
                 break;
@@ -182,6 +180,8 @@ public class ZombieInfectionCommand {
         return true;
     }
     
+    
+
     // Update the tabComplete method to include the new commands
     public List<String> tabComplete(String[] args) {
         if (args.length == 1) {

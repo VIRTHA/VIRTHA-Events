@@ -172,7 +172,6 @@ public class ZombieInfection implements Listener {
                     // Si no está en luz directa, quitar el fuego pero mantener debilidad
                     player.setFireTicks(0);
                     player.removePotionEffect(PotionEffectType.WITHER);
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, false, true, true));
                     sendActionBar(player, "&6La infección te debilita, pero estás a salvo de la luz solar directa.");
                 }
                 break;
@@ -182,7 +181,6 @@ public class ZombieInfection implements Listener {
                 player.removePotionEffect(PotionEffectType.NAUSEA);
                 player.removePotionEffect(PotionEffectType.HUNGER);
                 player.removePotionEffect(PotionEffectType.WITHER);
-                player.removePotionEffect(PotionEffectType.WEAKNESS);
                 player.setFireTicks(0);
                 
                 if (!player.hasPotionEffect(PotionEffectType.STRENGTH)) {
@@ -197,7 +195,6 @@ public class ZombieInfection implements Listener {
                 player.removePotionEffect(PotionEffectType.NAUSEA);
                 player.removePotionEffect(PotionEffectType.HUNGER);
                 player.removePotionEffect(PotionEffectType.WITHER);
-                player.removePotionEffect(PotionEffectType.WEAKNESS);
                 player.removePotionEffect(PotionEffectType.STRENGTH);
                 player.setFireTicks(0);
                 break;
