@@ -29,7 +29,7 @@ public class ZombieInfectionCommand {
         }
         
         if (args.length < 1) {
-            sender.sendMessage(ColorText.Colorize("&cUso: /ve effects zombie_infection <infectar|curar|estado|toggle> [jugador]"));
+            sender.sendMessage(ColorText.Colorize("&cUso: /ve effects zombie_infection <infectar|curar|estado|toggle|set_cured_count> [jugador] [argumentos]"));
             return true;
         }
         
@@ -171,9 +171,43 @@ public class ZombieInfectionCommand {
             sender.sendMessage(ColorText.Colorize("&cModo no válido. Usa 'all' o 'current'."));
         }
         break;
+        
+    case "set_cured_count":
+    case "establecer_curas":
+        if (!sender.hasPermission("virthaevents.admin.zombieinfection")) {
+            sender.sendMessage(ColorText.Colorize("&cNo tienes permiso para usar este comando."));
+            return true;
+        }
+        
+        if (args.length < 3) {
+            sender.sendMessage(ColorText.Colorize("&cUso: /ve effects zombie_infection set_cured_count <jugador> <cantidad>"));
+            return true;
+        }
+        
+        Player targetPlayer = Bukkit.getPlayer(args[1]);
+        if (targetPlayer == null || !targetPlayer.isOnline()) {
+            sender.sendMessage(ColorText.Colorize("&cJugador no encontrado o no está en línea."));
+            return true;
+        }
+        
+        int newCount;
+        try {
+            newCount = Integer.parseInt(args[2]);
+            if (newCount < 0) {
+                sender.sendMessage(ColorText.Colorize("&cLa cantidad debe ser un número positivo."));
+                return true;
+            }
+        } catch (NumberFormatException e) {
+            sender.sendMessage(ColorText.Colorize("&cLa cantidad debe ser un número válido."));
+            return true;
+        }
+        
+        zombieInfection.setCuredCount(targetPlayer.getUniqueId(), newCount);
+        sender.sendMessage(ColorText.Colorize("&aHas establecido el contador de curas de " + targetPlayer.getName() + " a " + newCount + "."));
+        break;
                     
             default:
-                sender.sendMessage(ColorText.Colorize("&cAcción desconocida. Usa: /ve effects zombie_infection <infectar|curar|estado|toggle> [jugador]"));
+                sender.sendMessage(ColorText.Colorize("&cAcción desconocida. Usa: /ve effects zombie_infection <infectar|curar|estado|toggle|set_cured_count> [jugador] [argumentos]"));
                 break;
         }
         
@@ -187,7 +221,8 @@ public class ZombieInfectionCommand {
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
             return Arrays.asList("infectar", "curar", "estado", "toggle", 
-                            "exclude_world", "include_world", "list_worlds", "apply_mode").stream()
+                            "exclude_world", "include_world", "list_worlds", "apply_mode",
+                            "set_cured_count", "establecer_curas").stream()
                 .filter(s -> s.startsWith(partial))
                 .collect(Collectors.toList());
         } else if (args.length == 2) {
@@ -211,6 +246,12 @@ public class ZombieInfectionCommand {
                         .map(Player::getName)
                         .filter(name -> name.toLowerCase().startsWith(partialName))
                         .collect(Collectors.toList());
+            }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set_cured_count") || 
+                args[0].equalsIgnoreCase("establecer_curas")) {
+                // Sugerir algunos valores comunes para el contador de curas
+                return Arrays.asList("0", "1", "5", "10");
             }
         }
         

@@ -4,8 +4,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import com.darkbladedev.VirthaEventsMain;
+import com.darkbladedev.effects.ZombieInfection;
 import com.darkbladedev.mechanics.AcidWeek;
 import com.darkbladedev.mechanics.BloodAndIronWeek;
 import com.darkbladedev.mechanics.ExplosiveWeek;
@@ -166,6 +169,25 @@ public class VirthaEventsExpansion extends PlaceholderExpansion {
             String challengeId = identifier.substring("challenge_completed_".length());
             
             return isChallengeCompleted(player, eventName, challengeId) ? "true" : "false";
+        }
+
+        // Status placeholders
+        if (identifier.equals("status_infection")) {
+            PersistentDataContainer pdc = player.getPersistentDataContainer();
+            if (pdc.get(ZombieInfection.getInfectionKey(), PersistentDataType.BOOLEAN).equals(Boolean.TRUE)) {
+                return "Infectado";
+            } else {
+                return "Sano";
+            }
+        }
+
+        if (identifier.equals("status_infection_cure_count")) {
+            PersistentDataContainer pdc = player.getPersistentDataContainer();
+            if (pdc.get(ZombieInfection.getInfectionCureCountKey(), PersistentDataType.INTEGER) == null || pdc.get(ZombieInfection.getInfectionCureCountKey(), PersistentDataType.INTEGER) == 0) {
+                return "0";
+            } else {
+                return String.valueOf(pdc.get(ZombieInfection.getInfectionCureCountKey(), PersistentDataType.INTEGER));
+            }
         }
         
         return null; // Placeholder not found

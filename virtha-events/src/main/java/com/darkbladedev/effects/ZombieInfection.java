@@ -39,8 +39,8 @@ public class ZombieInfection implements Listener {
     private final Plugin plugin;
     
     // Key para almacenar la infección en los datos persistentes del jugador
-    private final NamespacedKey zombieInfectionKey;
-    private final NamespacedKey InfectionCureCountKey;
+    private static NamespacedKey zombieInfectionKey;
+    private static NamespacedKey InfectionCureCountKey;
     
     // Mapa para rastrear jugadores infectados y sus tareas
     private final Map<UUID, BukkitTask> infectionTasks = new HashMap<>();
@@ -63,8 +63,8 @@ public class ZombieInfection implements Listener {
     
     private ZombieInfection(Plugin plugin) {
         this.plugin = plugin;
-        this.zombieInfectionKey = new NamespacedKey(plugin, "is_infected");
-        this.InfectionCureCountKey = new NamespacedKey(plugin, "infection_cure_count");
+        ZombieInfection.zombieInfectionKey = new NamespacedKey(plugin, "is_infected");
+        ZombieInfection.InfectionCureCountKey = new NamespacedKey(plugin, "infection_cure_count");
         
         // Registrar eventos
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -78,6 +78,14 @@ public class ZombieInfection implements Listener {
             instance = new ZombieInfection(plugin);
         }
         return instance;
+    }
+
+    public static NamespacedKey getInfectionKey() {
+        return zombieInfectionKey;
+    }
+
+    public static NamespacedKey getInfectionCureCountKey() {
+        return InfectionCureCountKey;
     }
     
     /**
@@ -319,7 +327,7 @@ public class ZombieInfection implements Listener {
         
         // Eliminar la marca de infección
         PersistentDataContainer pdc = player.getPersistentDataContainer();
-        pdc.remove(zombieInfectionKey);
+        pdc.set(zombieInfectionKey, PersistentDataType.BOOLEAN, false);
         infectedPlayers.remove(playerId);
 
         pdc.set(InfectionCureCountKey, PersistentDataType.INTEGER, pdc.getOrDefault(InfectionCureCountKey, PersistentDataType.INTEGER, 0) + 1);
@@ -363,7 +371,10 @@ public class ZombieInfection implements Listener {
      */
     public boolean isInfected(Player player) {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
-        return pdc.has(zombieInfectionKey, PersistentDataType.BOOLEAN);
+        if (pdc.has(zombieInfectionKey, PersistentDataType.BOOLEAN)) {
+            return pdc.get(zombieInfectionKey, PersistentDataType.BOOLEAN);
+        }
+        return false;
     }
     
     /**
@@ -476,6 +487,23 @@ public class ZombieInfection implements Listener {
      */
     public int getCuredCount(UUID playerId) {
         return curedInfectionsCount.getOrDefault(playerId, 0);
+    }
+    
+    /**
+     * Establece el número de veces que un jugador se ha curado de la infección
+     * @param playerId UUID del jugador
+     * @param count Nuevo número de curaciones
+     */
+    public void setCuredCount(UUID playerId, int count) {
+        if (count < 0) count = 0; // Asegurar que el contador no sea negativo
+        curedInfectionsCount.put(playerId, count);
+        
+        // Actualizar también el valor en los datos persistentes del jugador
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && player.isOnline()) {
+            PersistentDataContainer pdc = player.getPersistentDataContainer();
+            pdc.set(InfectionCureCountKey, PersistentDataType.INTEGER, count);
+        }
     }
     
     // Add this event handler after the other event handlers
