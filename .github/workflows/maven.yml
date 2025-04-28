@@ -38,17 +38,18 @@ jobs:
     - name: Obtener nombre del JAR
       id: get_jar_name
       run: |
-          JAR_NAME=$(ls target/*.jar | xargs -n1 basename)
-          echo "JAR_NAME=${JAR_NAME}" >> $GITHUB_ENV
-          echo "jar_name=${JAR_NAME}" >> $GITHUB_OUTPUT
+        JAR_NAME=$(ls target/*.jar | xargs -n1 basename)
+        echo "JAR_NAME=${JAR_NAME}" >> $GITHUB_ENV
+        echo "jar_name=${JAR_NAME}" >> $GITHUB_OUTPUT
     
     - name: Generate plugin artifact
       uses: actions/upload-artifact@v4.6.0
       with:
-        name: ${{ env.JAR_NAME }}  # Usa el nombre del JAR
-        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/virtha-events/target/${{ env.JAR_NAME }}  # Ruta del archivo
+        name: "${{ env.JAR_NAME }}"
+        path: "./target/${{ env.JAR_NAME }}"
           
     - name: Save plugin artifact
       uses: actions/download-artifact@v4.1.9
       with:
-        path: /home/runner/work/VIRTHA-Events/VIRTHA-Events/compiled
+        name: "${{ env.JAR_NAME }}"
+        path: "../compiled"
