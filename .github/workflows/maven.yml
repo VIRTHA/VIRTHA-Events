@@ -26,6 +26,13 @@ jobs:
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '22'
+    - name: Crear directorio de dependencias
+      run: mkdir -p src/main/dependencies
+    - name: Descargar EternalTags.jar
+      run: |
+        # Descargar EternalTags.jar desde GitHub Releases
+        mkdir -p src/main/dependencies
+        curl -L -o src/main/dependencies/EternalTags.jar https://github.com/Oribuin/EternalTags/releases/download/1.3.2/EternalTags-1.3.2.jar
     - run: mvn package -f pom.xml
 
     - name: Obtener nombre del JAR

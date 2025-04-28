@@ -25,12 +25,12 @@
             <id>placeholderapi</id>
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
-<!--
+
         <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <id>local-repo</id>
+            <url>${project.basedir}/src/main/dependencies/</url>
         </repository>
--->    
+
     </repositories>
 
     <dependencies>
@@ -52,6 +52,11 @@
             </exclusions>
         </dependency>
 
+        <!-- 
+        Para desarrollo local, si necesitas la dependencia EternalTags.jar:
+        1. Coloca el archivo EternalTags.jar en src/main/dependencies/
+        2. Cambia el scope a 'system' y descomenta la línea systemPath
+        -->
         <dependency>
             <groupId>com.oribuin.eternaltags</groupId>
             <artifactId>eternaltags</artifactId>
