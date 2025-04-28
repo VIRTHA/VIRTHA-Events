@@ -39,4 +39,4 @@ jobs:
       uses: actions/upload-artifact@v4.6.0
       with:
         name: "virtha-events-1.0-bukkit.jar"
-        path: "target/virtha-events-1.0-bukkit.jar"
+        path: "target/virtha-events-1.0-bukkit-shaded.jar"
