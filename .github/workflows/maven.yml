@@ -35,21 +35,8 @@ jobs:
         curl -L -o src/main/dependencies/EternalTags.jar https://github.com/Oribuin/EternalTags/releases/download/1.3.2/EternalTags-1.3.2.jar
     - run: mvn package -f pom.xml
 
-    - name: Obtener nombre del JAR
-      id: get_jar_name
-      run: |
-        JAR_NAME=$(ls target/*.jar | xargs -n1 basename)
-        echo "JAR_NAME=${JAR_NAME}" >> $GITHUB_ENV
-        echo "jar_name=${JAR_NAME}" >> $GITHUB_OUTPUT
-    
     - name: Generate plugin artifact
       uses: actions/upload-artifact@v4.6.0
       with:
-        name: "${{ env.JAR_NAME }}"
-        path: "./target/${{ env.JAR_NAME }}"
-          
-    - name: Save plugin artifact
-      uses: actions/download-artifact@v4.1.9
-      with:
-        name: "${{ env.JAR_NAME }}"
-        path: "../compiled"
+        name: "virtha-events-1.0-bukkit.jar"
+        path: "target/virtha-events-1.0-bukkit.jar"
