@@ -6,7 +6,7 @@
 
     <groupId>com.darkbladedev</groupId>
     <artifactId>virtha-events</artifactId>
-    <version>1.0-bukkit</version>
+    <version>bukkit</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
