@@ -40,3 +40,29 @@ permissions:
   virtha.admin.unban:
     description: Permite desbanear jugadores
     default: op
+    
+  # Ban Duration Permissions
+  virtha.ban.duration.exempt:
+    description: Exime al jugador de ser baneado al llegar al mínimo de corazones
+    default: false
+  virtha.ban.duration.1:
+    description: Establece la duración del baneo a 1 hora
+    default: false
+  virtha.ban.duration.2:
+    description: Establece la duración del baneo a 2 horas
+    default: false
+  virtha.ban.duration.3:
+    description: Establece la duración del baneo a 3 horas
+    default: false
+  virtha.ban.duration.4:
+    description: Establece la duración del baneo a 4 horas
+    default: false
+  virtha.ban.duration.6:
+    description: Establece la duración del baneo a 6 horas
+    default: false
+  virtha.ban.duration.12:
+    description: Establece la duración del baneo a 12 horas
+    default: false
+  virtha.ban.duration.24:
+    description: Establece la duración del baneo a 24 horas
+    default: false

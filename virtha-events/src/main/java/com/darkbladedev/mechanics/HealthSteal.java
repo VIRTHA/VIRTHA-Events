@@ -14,6 +14,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.plugin.Plugin;
 
+import com.darkbladedev.permissions.PermissionManager;
 import com.darkbladedev.utils.ColorText;
 
 import org.json.simple.JSONObject;
@@ -122,8 +123,21 @@ public class HealthSteal implements Listener {
         // Save the updated ban count to JSON
         saveBanData();
         
-        // Calcular la duración del baneo (6 horas * número de baneos)
-        long banHours = 6L * banCount;
+        // Obtener el gestor de permisos
+        PermissionManager permManager = PermissionManager.getInstance(plugin);
+        
+        // Calcular la duración del baneo según los permisos del jugador
+        // Por defecto: 6 horas * número de baneos
+        long defaultBanHours = 6L * banCount;
+        long banHours = permManager.getBanDurationHours(player, banCount, defaultBanHours);
+        
+        // Si el jugador está exento de baneo (banHours = 0), solo mostrar advertencia
+        if (banHours <= 0) {
+            player.sendMessage(ColorText.Colorize("&c¡Has alcanzado el mínimo de corazones permitidos!"));
+            player.sendMessage(ColorText.Colorize("&aEstás exento de baneo gracias a tus permisos."));
+            return;
+        }
+        
         Date expirationDate = new Date(System.currentTimeMillis() + (banHours * 60 * 60 * 1000));
         
         // Mensaje para el jugador
