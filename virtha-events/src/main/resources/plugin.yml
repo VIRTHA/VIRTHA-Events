@@ -21,6 +21,18 @@ commands:
     permission: virtha.admin.unban
     aliases: [virthaevents-unban, vevents-unban]
     permission-message: "!STOP¡ 🚫 You do not have permission to use this command."
+  vcure:
+    description: Gestiona la cantidad de veces que un jugador se ha curado de la infección zombie
+    usage: /vcure <set|add|remove|check> [jugador] [cantidad]
+    permission: virthaevents.command.curemanagement
+    aliases: [virthacure, vevents-cure]
+    permission-message: "!STOP¡ 🚫 You do not have permission to use this command."
+  vcuredebug:
+    description: Comando de depuración para gestionar curas (solo disponible en modo debug)
+    usage: /vcuredebug <set|add|remove|check> [jugador] [cantidad]
+    permission: virthaevents.command.curemanagement
+    aliases: [virthacuredebug, vevents-curedebug]
+    permission-message: "!STOP¡ 🚫 You do not have permission to use this command."
 
 
 # Permissions Statement
@@ -36,6 +48,15 @@ permissions:
     default: op
   virthaevents.command.effects.zombieinfection:
     description: "Allows to use /virtha_events effects zombieinfection command."
+    default: op
+  virthaevents.command.curemanagement:
+    description: "Permite gestionar la cantidad de curas de infección zombie de los jugadores."
+    default: op
+  virthaevents.admin.zombieinfection:
+    description: "Permite administrar el sistema de infección zombie."
+    default: op
+  virthaevents.admin.update:
+    description: "Permite recibir notificaciones sobre actualizaciones disponibles."
     default: op
   virtha.admin.unban:
     description: Permite desbanear jugadores

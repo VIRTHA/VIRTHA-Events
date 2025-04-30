@@ -87,6 +87,23 @@ public class ZombieInfection implements Listener {
     public static NamespacedKey getInfectionCureCountKey() {
         return InfectionCureCountKey;
     }
+
+        
+    /**
+     * Obtiene el contador de curas para un jugador
+     * @param playerId UUID del jugador
+     * @return Número de veces que el jugador se ha curado
+     */
+    public int getCuredCount(UUID playerId) {
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && player.isOnline()) {
+            PersistentDataContainer pdc = player.getPersistentDataContainer();
+            if (pdc.has(InfectionCureCountKey, PersistentDataType.INTEGER)) {
+                return pdc.get(InfectionCureCountKey, PersistentDataType.INTEGER);
+            }
+        }
+        return curedInfectionsCount.getOrDefault(playerId, 0);
+    }
     
     /**
      * Inicia la tarea que verifica el tiempo del día para aplicar los efectos correspondientes
@@ -330,7 +347,12 @@ public class ZombieInfection implements Listener {
         pdc.set(zombieInfectionKey, PersistentDataType.BOOLEAN, false);
         infectedPlayers.remove(playerId);
 
-        pdc.set(InfectionCureCountKey, PersistentDataType.INTEGER, pdc.getOrDefault(InfectionCureCountKey, PersistentDataType.INTEGER, 0) + 1);
+        // Incrementar el contador de curas
+        int currentCures = pdc.getOrDefault(InfectionCureCountKey, PersistentDataType.INTEGER, 0);
+        pdc.set(InfectionCureCountKey, PersistentDataType.INTEGER, currentCures + 1);
+        
+        // Actualizar el mapa de conteo de curaciones
+        curedInfectionsCount.put(playerId, currentCures + 1);
         
         // Cancelar tareas asociadas
         if (infectionTasks.containsKey(playerId)) {
@@ -480,14 +502,7 @@ public class ZombieInfection implements Listener {
         }
     }
     
-    /**
-     * Obtiene el número de veces que un jugador se ha curado de la infección
-     * @param playerId UUID del jugador
-     * @return Número de curaciones
-     */
-    public int getCuredCount(UUID playerId) {
-        return curedInfectionsCount.getOrDefault(playerId, 0);
-    }
+
     
     /**
      * Establece el número de veces que un jugador se ha curado de la infección

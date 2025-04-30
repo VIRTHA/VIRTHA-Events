@@ -175,7 +175,7 @@ public class HealthSteal implements Listener {
             
             // Notificar a los administradores
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize(
-                "&c[HealthSteal] &f" + player.getName() + " ha sido baneado por " + banHours + " horas " +
+                "&f" + player.getName() + " ha sido baneado por " + banHours + " horas " +
                 "(Baneo #" + banCount + ")"
             ));
         }, 40L); // 2 segundos de retraso (40 ticks)

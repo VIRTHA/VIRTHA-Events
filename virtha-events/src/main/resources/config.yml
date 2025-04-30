@@ -1,1 +1,28 @@
+# Generated config.yml for VIRTHA Events
+# By: DarkBladeDev
+
+# General config
+# Activa el modo debug para habilitar comandos adicionales y mensajes de depuración
+debug: false
+
+# Sistema de actualización automática
+# Activa o desactiva la verificación de actualizaciones
+update-checker: true
+# Activa o desactiva las notificaciones de actualización a los administradores
+update-notifier: true
+# Mensaje que se mostrará cuando haya una actualización disponible
+update-notifier-message: "&2¡Una nueva actualización está disponible! &5{latest}&2. &5{link}"
+# Intervalo de verificación de actualizaciones en horas (por defecto: 6)
+update-check-interval: 6
+
+# Configuración de GitHub para actualizaciones
+github:
+  # Propietario del repositorio (usuario u organización)  -> (NO CAMBIAR) <-
+  owner: "VIRTHA"
+  # Nombre del repositorio -> (NO CAMBIAR) <-
+  repo: "VIRTHA-Events"
+  # Token de acceso personal de GitHub (opcional, para evitar límites de tasa)
+  token: ""
+
+# Prefijo del plugin para los mensajes
 prefix: "&2[ &5VIRTHA &3Events &2]"

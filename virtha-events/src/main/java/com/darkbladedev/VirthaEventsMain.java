@@ -3,10 +3,13 @@ package com.darkbladedev;
 import java.io.File;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.darkbladedev.commands.CureManagementCommand;
 import com.darkbladedev.commands.UnbanCommand;
+import com.darkbladedev.events.PlayerJoinListener;
 import com.darkbladedev.commands.VirthaEventsMainCommand;
 import com.darkbladedev.commands.ZombieInfectionCommand;
 import com.darkbladedev.effects.ZombieInfection;
@@ -19,6 +22,8 @@ import com.darkbladedev.placeholders.VirthaEventsExpansion;
 import com.darkbladedev.storage.StorageManager;
 import com.darkbladedev.tabcompleter.CommandTabcompleter;
 import com.darkbladedev.utils.ColorText;
+import com.darkbladedev.utils.ConfigManager;
+import com.darkbladedev.utils.UpdateChecker;
 import com.darkbladedev.utils.WorldIndexManager;
 
 public class VirthaEventsMain extends JavaPlugin{
@@ -30,10 +35,18 @@ public class VirthaEventsMain extends JavaPlugin{
     private StorageManager storageManager;
     private ZombieInfection zombieInfection;
     private ZombieInfectionCommand zombieInfectionCommand;
+    private UpdateChecker updateChecker;
+    private CureManagementCommand cureManagementCommand;
 
     @Override
     public void onEnable() {
         plugin = this;
+        
+        // Guardar configuración por defecto si no existe
+        saveDefaultConfig();
+        
+        // Inicializar el gestor de configuración
+        ConfigManager.initialize(this);
 
         // Initialize world index manager
         WorldIndexManager.updateWorldIndices();
@@ -41,6 +54,12 @@ public class VirthaEventsMain extends JavaPlugin{
         // Initialize zombie infection system
         zombieInfection = ZombieInfection.getInstance(this);
         zombieInfectionCommand = new ZombieInfectionCommand(zombieInfection);
+        
+        // Inicializar el verificador de actualizaciones
+        updateChecker = new UpdateChecker(this);
+        if (ConfigManager.isUpdateCheckerEnabled()) {
+            updateChecker.start();
+        }
 
         registerCommands();
         registerEvents();
@@ -62,6 +81,13 @@ public class VirthaEventsMain extends JavaPlugin{
         } else {
             Bukkit.getConsoleSender().sendMessage(
                 ColorText.Colorize("&cPlaceholderAPI not found, placeholders will not be available.")
+            );
+        }
+        
+        // Mostrar mensaje de actualización si está disponible
+        if (updateChecker.isUpdateAvailable() && ConfigManager.isUpdateNotifierEnabled()) {
+            Bukkit.getConsoleSender().sendMessage(
+                ColorText.Colorize("&6[VIRTHA Events] &aActualización disponible: &e" + updateChecker.getLatestVersion())
             );
         }
 
@@ -99,6 +125,9 @@ public class VirthaEventsMain extends JavaPlugin{
             // Register zombie infection listener
             pluginManager.registerEvents(zombieInfection, this);
             
+            // Registrar el listener para notificaciones de actualización
+            pluginManager.registerEvents(new PlayerJoinListener(this), this);
+            
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Events registered! 📝"));
         } catch (Exception e) {
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&cError registering events!"));
@@ -110,6 +139,15 @@ public class VirthaEventsMain extends JavaPlugin{
         try {
             getCommand("virtha_events").setExecutor(new VirthaEventsMainCommand(this));
             getCommand("virtha_events").setTabCompleter(new CommandTabcompleter(this));
+            
+            // Registrar comandos de gestión de curas
+            cureManagementCommand = new CureManagementCommand(this, zombieInfection);
+            getCommand("vcure").setExecutor(cureManagementCommand);
+            getCommand("vcure").setTabCompleter(cureManagementCommand);
+            
+            // Registrar comando de debug (solo disponible si debug está activado)
+            getCommand("vcuredebug").setExecutor(cureManagementCommand);
+            getCommand("vcuredebug").setTabCompleter(cureManagementCommand);
             
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Commands registered! 📝"));
         } catch (Exception e) {
@@ -129,5 +167,23 @@ public class VirthaEventsMain extends JavaPlugin{
     
     public ZombieInfectionCommand getZombieInfectionCommand() {
         return zombieInfectionCommand;
+    }
+    
+    /**
+     * Obtiene el verificador de actualizaciones
+     * @return El verificador de actualizaciones
+     */
+    public UpdateChecker getUpdateChecker() {
+        return updateChecker;
+    }
+    
+    /**
+     * Notifica a un jugador sobre actualizaciones disponibles
+     * @param player El jugador a notificar
+     */
+    public void notifyUpdateToPlayer(Player player) {
+        if (updateChecker != null && player.hasPermission("virthaevents.admin.update")) {
+            updateChecker.notifyPlayer(player);
+        }
     }
 }
