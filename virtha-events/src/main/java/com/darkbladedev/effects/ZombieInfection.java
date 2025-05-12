@@ -22,6 +22,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.block.Block;
+import org.bukkit.Location;
 
 import com.darkbladedev.utils.ColorText;
 import net.md_5.bungee.api.ChatMessageType;
@@ -142,6 +144,27 @@ public class ZombieInfection implements Listener {
     
     
     /**
+     * Verifica si hay bloques sólidos sobre el jugador que bloqueen la luz solar
+     * @param player El jugador a verificar
+     * @return true si hay bloques sobre el jugador, false si está expuesto al cielo
+     */
+    private boolean hasBlockAbove(Player player) {
+        Location loc = player.getLocation();
+        int maxHeight = player.getWorld().getMaxHeight();
+        int playerY = loc.getBlockY();
+        
+        // Verificar desde la posición del jugador hasta el límite del mundo
+        for (int y = playerY + 2; y < maxHeight; y++) {
+            Block block = player.getWorld().getBlockAt(loc.getBlockX(), y, loc.getBlockZ());
+            if (block.getType().isOccluding() || block.getType().toString().contains("LEAVES")) {
+                return true; // Hay un bloque sólido o hojas sobre el jugador
+            }
+        }
+        
+        return false; // No hay bloques sobre el jugador
+    }
+    
+    /**
      * Aplica efectos basados en la hora del día
      * @param player El jugador infectado
      * @param time El tiempo actual del mundo (0-24000)
@@ -181,7 +204,9 @@ public class ZombieInfection implements Listener {
                 // Verificar si el jugador está expuesto a la luz directa del sol
                 boolean isInDirectSunlight = player.getLocation().getBlock().getLightFromSky() == 15 && 
                                             player.getWorld().isClearWeather() &&
-                                            player.getLocation().getWorld().getTime() < 12000;
+                                            player.getLocation().getWorld().getTime() < 12000 &&
+                                            player.getLocation().getBlock().getLightFromBlocks() < 14 &&
+                                            !hasBlockAbove(player);
                 
                 if (isInDirectSunlight) {
                     // Aplicar efecto de wither y fuego solo si está en luz directa del sol
@@ -190,14 +215,16 @@ public class ZombieInfection implements Listener {
                     sendActionBar(player, "&c¡La luz directa del sol quema tu piel infectada!");
                     
                     // Efectos visuales adicionales para enfatizar el fuego
-                    player.getWorld().spawnParticle(Particle.FLAME, 
-                        player.getLocation().add(0, 1, 0), 
+                    player.getWorld().spawnParticle(Particle.LAVA,
+                        player.getLocation().add(0, 1, 0),
                         10, 0.3, 0.5, 0.3, 0.01);
                 } else {
                     // Si no está en luz directa, quitar el fuego pero mantener debilidad
                     player.setFireTicks(0);
                     player.removePotionEffect(PotionEffectType.WITHER);
                     sendActionBar(player, "&6La infección te debilita, pero estás a salvo de la luz solar directa.");
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 140, 0, false, true, true));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 100, 0, false, true, true));
                 }
                 break;
                 
@@ -208,10 +235,9 @@ public class ZombieInfection implements Listener {
                 player.removePotionEffect(PotionEffectType.WITHER);
                 player.setFireTicks(0);
                 
-                if (!player.hasPotionEffect(PotionEffectType.STRENGTH)) {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 300, 0, false, true, true));
-                    sendActionBar(player, "&8La oscuridad de la noche &4fortalece &8tu infección...");
-                }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 300, 0, false, true, true));
+                sendActionBar(player, "&8La oscuridad de la noche &4fortalece &8tu infección...");
+                
                 break;
                 
             case "TRANSITION":
@@ -228,7 +254,7 @@ public class ZombieInfection implements Listener {
         // Efectos visuales constantes para mostrar que está infectado
         player.getWorld().spawnParticle(Particle.SMOKE, 
             player.getLocation().add(0, 1, 0), 
-            5, 0.3, 0.5, 0.3, 0.01);
+            3, 0.3, 0.5, 0.3, 0.01);
     }
 
     /**
@@ -328,8 +354,8 @@ public class ZombieInfection implements Listener {
             15, 0.5, 0.5, 0.5, 0.1);
         
         // Aplicar efectos iniciales
-        World world = player.getWorld();
-        applyTimeBasedEffects(player, world.getTime());
+        // World world = player.getWorld();
+        // applyTimeBasedEffects(player, world.getTime());
     }
     
     /**

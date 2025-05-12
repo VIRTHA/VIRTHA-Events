@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.darkbladedev.advancements.initTabs;
 import com.darkbladedev.commands.CureManagementCommand;
 import com.darkbladedev.commands.UnbanCommand;
 import com.darkbladedev.events.PlayerJoinListener;
@@ -63,6 +64,7 @@ public class VirthaEventsMain extends JavaPlugin{
 
         registerCommands();
         registerEvents();
+        registerAdvancements();
         
         
         // Inicializar y arrancar el sistema de eventos semanales
@@ -184,6 +186,20 @@ public class VirthaEventsMain extends JavaPlugin{
     public void notifyUpdateToPlayer(Player player) {
         if (updateChecker != null && player.hasPermission("virthaevents.admin.update")) {
             updateChecker.notifyPlayer(player);
+        }
+    }
+
+    /**
+     * Registra los avances del plugin utilizando UltimateAdvancementAPI
+     */
+    private void registerAdvancements() {
+        initTabs initTabs = new initTabs();
+        boolean success = initTabs.initializeTabs(this);
+        
+        if (!success) {
+            getLogger().warning("No se pudieron registrar los avances. Algunas funcionalidades pueden no estar disponibles.");
+        } else {
+            getLogger().info("Avances registrados correctamente.");
         }
     }
 }

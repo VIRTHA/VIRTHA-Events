@@ -47,7 +47,7 @@ public class VirthaEventsMainCommand implements CommandExecutor {
                     case "zombieinfection":
                     case "zombie":
                         if (args.length < 3) {
-                            sender.sendMessage(ColorText.Colorize("&cUso: /ve effects zombie_infection <infectar|curar|estado|toggle> [jugador]"));
+                            sender.sendMessage(ColorText.Colorize("&cUso: /ve effects zombie_infection < infectar | curar | estado | toggle > [jugador]"));
                             return true;
                         }
                         
@@ -60,7 +60,7 @@ public class VirthaEventsMainCommand implements CommandExecutor {
                         return true;
                 }
             default:
-                sender.sendMessage(ColorText.Colorize("&cInvalid subcommand. Use /virthaevents <run_event | health | event_control | effects>"));
+                sender.sendMessage(ColorText.Colorize("&cSubcomando inválido. Usa /virthaevents <run_event | health | event_control | effects>"));
                 return false;
         
         }
