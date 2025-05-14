@@ -15,6 +15,7 @@ import com.darkbladedev.commands.VirthaEventsMainCommand;
 import com.darkbladedev.commands.ZombieInfectionCommand;
 import com.darkbladedev.effects.ZombieInfection;
 import com.darkbladedev.enchants.AcidResistance;
+import com.darkbladedev.events.PlayerActionListeners;
 import com.darkbladedev.mechanics.BanManager;
 import com.darkbladedev.mechanics.HealthSteal;
 import com.darkbladedev.mechanics.HealthRewards;
@@ -130,6 +131,9 @@ public class VirthaEventsMain extends JavaPlugin{
             // Registrar el listener para notificaciones de actualización
             pluginManager.registerEvents(new PlayerJoinListener(this), this);
             
+            // Registrar el listener para manejar logros personalizados
+            pluginManager.registerEvents(new PlayerActionListeners(this), this);
+            
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&6Events registered! 📝"));
         } catch (Exception e) {
             Bukkit.getConsoleSender().sendMessage(ColorText.Colorize("&cError registering events!"));
@@ -193,8 +197,8 @@ public class VirthaEventsMain extends JavaPlugin{
      * Registra los avances del plugin utilizando UltimateAdvancementAPI
      */
     private void registerAdvancements() {
-        initTabs initTabs = new initTabs();
-        boolean success = initTabs.initializeTabs(this);
+        initTabs initTabs = new initTabs(this);
+        boolean success = initTabs.initializeTabs();
         
         if (!success) {
             getLogger().warning("No se pudieron registrar los avances. Algunas funcionalidades pueden no estar disponibles.");

@@ -63,7 +63,7 @@ public class ZombieInfection implements Listener {
     private BukkitTask timeCheckTask;
     private boolean isEnabled = true;
     
-    private ZombieInfection(Plugin plugin) {
+    public ZombieInfection(Plugin plugin) {
         this.plugin = plugin;
         ZombieInfection.zombieInfectionKey = new NamespacedKey(plugin, "is_infected");
         ZombieInfection.InfectionCureCountKey = new NamespacedKey(plugin, "infection_cure_count");

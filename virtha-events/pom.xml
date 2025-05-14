@@ -60,9 +60,9 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi</artifactId>
+            <artifactId>ultimateadvancementapi-shadeable</artifactId>
             <version>2.5.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
 
         <!-- 
@@ -134,6 +134,11 @@
                                 <relocation>
                                     <pattern>org.json.simple</pattern>
                                     <shadedPattern>com.darkbladedev.libs.json.simple</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>com.fren_gor.ultimateAdvancementAPI</pattern>
+                                    <shadedPattern>com.darkbladedev.libs.com.fren_gor.ultimateAdvancementAPI</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
