@@ -37,6 +37,29 @@ public class PlayerActionListeners implements Listener {
         this.plugin = plugin;
         this.advancementAPI = initTabs.api;
         this.zombieInfection = new ZombieInfection(plugin);
+        
+        // Verificar si la API está disponible, si no, programar una tarea para intentar obtenerla más tarde
+        if (this.advancementAPI == null) {
+            plugin.getLogger().warning("La API de avances no está disponible en la inicialización. Se intentará obtener más tarde.");
+            scheduleApiCheck();
+        }
+    }
+    
+    /**
+     * Programa una tarea para verificar y actualizar la referencia a la API de avances
+     * si inicialmente no estaba disponible
+     */
+    private void scheduleApiCheck() {
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (initTabs.api != null && this.advancementAPI == null) {
+                this.advancementAPI = initTabs.api;
+                plugin.getLogger().info("Referencia a la API de avances actualizada correctamente.");
+            } else if (this.advancementAPI == null) {
+                plugin.getLogger().warning("La API de avances sigue sin estar disponible después del reintento.");
+                // Programar otro intento en 20 ticks (1 segundo)
+                scheduleApiCheck();
+            }
+        }, 20L); // 20 ticks = 1 segundo
     }
     
     /**
